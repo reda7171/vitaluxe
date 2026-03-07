@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
 import { CartProvider } from "@/lib/context/cart-context";
 import { WishlistProvider } from "@/lib/context/wishlist-context";
@@ -13,7 +14,9 @@ export function PublicProviders({ children }: { children: React.ReactNode }) {
             <WishlistProvider>
                 <CartProvider>
                     <div className="flex min-h-screen flex-col">
-                        <Header />
+                        <Suspense>
+                            <Header />
+                        </Suspense>
                         <main className="flex-1 bg-muted/20">{children}</main>
                         <Footer />
                     </div>

@@ -4,9 +4,11 @@ import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/lib/context/cart-context";
-import { CheckCircle2, Package, ArrowRight, ShoppingBag, Home } from "lucide-react";
+import { CheckCircle2, Package, ArrowRight, ShoppingBag, Home, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
+
+export const dynamic = "force-dynamic";
 
 function SuccessContent() {
     const searchParams = useSearchParams();
@@ -80,7 +82,7 @@ function SuccessContent() {
 
 export default function CheckoutSuccessPage() {
     return (
-        <Suspense>
+        <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>}>
             <SuccessContent />
         </Suspense>
     );

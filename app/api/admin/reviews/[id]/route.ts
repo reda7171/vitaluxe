@@ -2,12 +2,12 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await auth();
         if (session?.user?.role !== "ADMIN") return NextResponse.json({}, { status: 403 });
 
-        const { id } = params;
+        const { id } = await params;
         const { status } = await req.json();
 
         const review = await prisma.review.update({
@@ -21,12 +21,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await auth();
         if (session?.user?.role !== "ADMIN") return NextResponse.json({}, { status: 403 });
 
-        const { id } = params;
+        const { id } = await params;
         await prisma.review.delete({ where: { id } });
 
         return NextResponse.json({ success: true });

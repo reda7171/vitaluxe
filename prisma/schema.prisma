@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String              @id @default(cuid())
+  name       String?
+  email      String              @unique
+  password   String
+  role       Role                @default(CUSTOMER)
+  createdAt  DateTime            @default(now())
+  phone      String?
+  image      String?
+  addresses  Address[]
+  orders     Order[]
+  resetToken PasswordResetToken?
+  reviews    Review[]
+  wishlist   Wishlist[]
+  prescriptions Prescription[]
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  description String      @db.Text
+  price       Float
+  salePrice   Float?
+  stock       Int         @default(0)
+  images      Json?
+  categoryId  String
+  brand       String?
+  createdAt   DateTime    @default(now())
+  orderItems  OrderItem[]
+  category    Category    @relation(fields: [categoryId], references: [id])
+  reviews     Review[]
+  wishlist    Wishlist[]
+
+  @@index([categoryId], map: "Product_categoryId_fkey")
+  @@index([createdAt])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String
+  rating    Int
+  comment   String   @db.Text
+  images    Json?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId], map: "Review_productId_fkey")
+  @@index([userId], map: "Review_userId_fkey")
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String
+  slug     String    @unique
+  image    String?   @db.LongText
+  products Product[]
+}
+
+model Brand {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  image    String?   @db.LongText
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  userId        String
+  totalAmount   Float
+  status        OrderStatus @default(PENDING)
+  paymentMethod String
+  createdAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id])
+  orderItems    OrderItem[]
+
+  @@index([userId], map: "Order_userId_fkey")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId], map: "OrderItem_orderId_fkey")
+  @@index([productId], map: "OrderItem_productId_fkey")
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   @default("home")
+  firstName String
+  lastName  String
+  phone     String
+  street    String
+  city      String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "Address_userId_fkey")
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId], map: "Wishlist_productId_fkey")
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  userId  String   @unique
+  token   String   @unique
+  expires DateTime
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PromoCode {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  discount  Float
+  type      String    @default("percent")
+  maxUses   Int?
+  uses      Int       @default(0)
+  expiresAt DateTime?
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+}
+
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String        @db.Text
+  status    MessageStatus @default(UNREAD)
+  createdAt DateTime      @default(now())
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  REPLIED
+}
+
+model NewsletterLead {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Prescription {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  note      String?  @db.Text
+  image     String   @db.LongText
+  status    String   @default("PENDING")
+  userId    String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "Prescription_userId_fkey")
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  imageUrl  String   @db.LongText
+  link      String?  @default("/")
+  active    Boolean  @default(true)
+  position  String   @default("HERO")
+  createdAt DateTime @default(now())
+}
+
+model StoreSettings {
+  id        String   @id @default("1")
+  boutique  Json?
+  livraison Json?
+  paiement  Json?
+  notifs    Json?
+  apparence Json?
+  updatedAt DateTime @updatedAt
+}
+
+

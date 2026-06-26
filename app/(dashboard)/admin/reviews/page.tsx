@@ -27,9 +27,15 @@ export default function AdminReviewsPage() {
         try {
             const res = await fetch("/api/admin/reviews");
             const data = await res.json();
-            setReviews(data);
+            if (res.ok && Array.isArray(data)) {
+                setReviews(data);
+            } else {
+                toast.error(data?.error || "Erreur lors du chargement des avis");
+                setReviews([]);
+            }
         } catch {
             toast.error("Erreur lors du chargement des avis");
+            setReviews([]);
         } finally {
             setLoading(false);
         }
@@ -65,7 +71,7 @@ export default function AdminReviewsPage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="w-full space-y-6">
             <div>
                 <h1 className="text-2xl font-bold text-slate-800">Avis Clients</h1>
                 <p className="text-sm text-slate-500">Gérez les avis laissés par vos clients sur les produits.</p>
@@ -93,7 +99,14 @@ export default function AdminReviewsPage() {
                                 <td className="px-5 py-4 w-48">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
-                                            {r.product.images?.length > 0 && <img src={r.product.images[0]} alt="" className="w-full h-full object-cover" />}
+                                            {(() => {
+                                                try {
+                                                    const imgs = typeof r.product.images === "string" ? JSON.parse(r.product.images) : r.product.images;
+                                                    return Array.isArray(imgs) && imgs.length > 0 ? (
+                                                        <img loading="lazy" src={imgs[0]} alt="" className="w-full h-full object-cover" />
+                                                    ) : null;
+                                                } catch { return null; }
+                                            })()}
                                         </div>
                                         <p className="text-sm font-semibold text-slate-800 line-clamp-2">{r.product.name}</p>
                                     </div>
@@ -112,17 +125,24 @@ export default function AdminReviewsPage() {
                                     <p className="text-xs text-slate-600 line-clamp-2 max-w-xs">{r.comment || <span className="italic text-slate-400">Aucun commentaire</span>}</p>
                                 </td>
                                 <td className="px-5 py-4">
-                                    {r.images && Array.isArray(r.images) && r.images.length > 0 ? (
-                                        <div className="flex -space-x-2">
-                                            {r.images.map((img, i) => (
-                                                <a key={i} href={img} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-md border-2 border-white shadow-sm overflow-hidden z-10 hover:z-20 hover:scale-110 transition-transform">
-                                                    <img src={img} className="w-full h-full object-cover" alt="" />
-                                                </a>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-slate-300"><ImageIcon size={18} /></div>
-                                    )}
+                                    {(() => {
+                                        try {
+                                            const imgs = typeof r.images === "string" ? JSON.parse(r.images) : r.images;
+                                            return Array.isArray(imgs) && imgs.length > 0 ? (
+                                                <div className="flex -space-x-2">
+                                                    {imgs.map((img: string, i: number) => (
+                                                        <a key={i} href={img} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-md border-2 border-white shadow-sm overflow-hidden z-10 hover:z-20 hover:scale-110 transition-transform">
+                                                            <img loading="lazy" src={img} alt="" className="w-full h-full object-cover" />
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-slate-300"><ImageIcon size={18} /></div>
+                                            );
+                                        } catch {
+                                            return <div className="text-slate-300"><ImageIcon size={18} /></div>;
+                                        }
+                                    })()}
                                 </td>
                                 <td className="px-5 py-4">
                                     <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${r.status === "APPROVED" ? "bg-emerald-100 text-emerald-700" : r.status === "REJECTED" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"}`}>

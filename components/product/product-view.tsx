@@ -6,12 +6,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Star, ShoppingCart, Heart, Truck, ShieldCheck, RotateCcw, CheckCircle2, Minus, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProductGallery } from "@/components/product/product-gallery";
-import { useCart } from "@/lib/context/cart-context";
-import type { Product } from "@/lib/data/products";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { ProductGallery } from "./product-gallery";
+import { useCart } from "../../lib/context/cart-context";
+import type { Product } from "../../lib/data/products";
 
 const badgeColors: Record<string, string> = {
     Nouveau: "bg-primary text-primary-foreground",
@@ -29,6 +29,8 @@ export function ProductView({ product, relatedProducts }: Props) {
     const [addedToCart, setAddedToCart] = useState(false);
     const { addItem } = useCart();
 
+    const isInStock = product.inStock !== undefined ? product.inStock : ((product.stock ?? 1) > 0);
+
     const displayPrice = product.salePrice ?? product.price;
     const discount = product.salePrice
         ? Math.round(((product.price - product.salePrice) / product.price) * 100)
@@ -40,7 +42,13 @@ export function ProductView({ product, relatedProducts }: Props) {
         setTimeout(() => setAddedToCart(false), 2500);
     };
 
-    const allImages = product.images?.length ? product.images : [product.image];
+    const allImages: string[] = Array.isArray(product.images)
+        ? (product.images.filter(Boolean) as string[])
+        : typeof product.images === "string"
+            ? [product.images]
+            : product.image
+                ? [product.image]
+                : [];
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
@@ -152,14 +160,14 @@ export function ProductView({ product, relatedProducts }: Props) {
                                 <button
                                     className="px-4 py-2.5 hover:bg-muted transition-colors disabled:opacity-40"
                                     onClick={() => setQty((q) => q + 1)}
-                                    disabled={!product.inStock}
+                                    disabled={!isInStock}
                                     aria-label="Augmenter"
                                 >
                                     <Plus className="h-4 w-4" />
                                 </button>
                             </div>
                             <span className="text-sm text-muted-foreground">
-                                {product.inStock ? (
+                                {isInStock ? (
                                     <span className="text-emerald-600 font-semibold"><FontAwesomeIcon icon={faCheck} className="mr-1" />En stock</span>
                                 ) : (
                                     <span className="text-rose-500 font-semibold">Rupture de stock</span>
@@ -171,7 +179,7 @@ export function ProductView({ product, relatedProducts }: Props) {
                             <Button
                                 size="lg"
                                 className="flex-1 h-12 text-base gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                                disabled={!product.inStock}
+                                disabled={!isInStock}
                                 onClick={handleAddToCart}
                                 id="add-to-cart-btn"
                             >

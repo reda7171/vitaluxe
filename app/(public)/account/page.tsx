@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { AccountLayout } from "@/components/account/account-layout";
-import { ProfileView } from "@/components/account/profile-view";
+import { AccountLayout } from "../../../components/account/account-layout";
+import { ProfileView } from "../../../components/account/profile-view";
 
 export const metadata: Metadata = {
     title: "Mon Profil | Vitaluxe",

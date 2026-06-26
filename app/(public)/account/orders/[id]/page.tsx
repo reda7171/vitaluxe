@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { AccountLayout } from "@/components/account/account-layout";
+import { AccountLayout } from "../../../../../components/account/account-layout";
 import { Package, Truck, CheckCircle2, Clock, XCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -124,7 +124,7 @@ export default function OrderDetailPage() {
                                     return (
                                         <div key={item.id} className="flex items-center gap-4 p-5">
                                             <div className="w-14 h-14 rounded-xl border bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
-                                                {imgs[0] ? <img src={imgs[0]} alt={item.product.name} className="w-full h-full object-cover" /> : <span className="text-2xl">💊</span>}
+                                                {imgs[0] ? <img loading="lazy" src={imgs[0]} alt={item.product.name} className="w-full h-full object-cover" /> : <span className="text-2xl">💊</span>}
                                             </div>
                                             <div className="flex-1">
                                                 <p className="text-xs font-bold text-[#103178]">{item.product.brand}</p>

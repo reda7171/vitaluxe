@@ -46,7 +46,11 @@ export function ProductGallery({ images, name }: Props) {
                                 }`}
                             aria-label={`Image ${i + 1}`}
                         >
-                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            <img 
+                                src={img} 
+                                alt={`${name} thumbnail ${i + 1}`} 
+                                className="w-full h-full object-cover" 
+                            />
                         </button>
                     ))}
                 </div>

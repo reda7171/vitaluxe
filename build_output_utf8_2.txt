@@ -1,0 +1,8 @@
+﻿node.exe : npm error could not determine executable to run
+Au caractère C:\Users\HP\AppData\Roaming\npm\npx.ps1:24 : 5
++     & "node$exe"  "$basedir/node_modules/npm/bin/npx-cli.js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm error could...ecutable to run:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm error A complete log of this run can be found in: C:\Users\HP\AppData\Local\npm-cache\_logs\2026-03-17T17_55_36_443Z-debug-0.log

@@ -92,8 +92,13 @@ export default function AboutPage() {
                         de vous garantir qualité, efficacité et traçabilité.
                     </p>
                 </div>
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-3xl h-80 flex items-center justify-center">
-                    <div className="text-8xl">💊</div>
+                <div className="relative rounded-3xl h-80 overflow-hidden shadow-xl">
+                    <img
+                        src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=900&auto=format&fit=crop"
+                        alt="Produits parapharmacie Vitaluxe"
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-[#103178]/40 to-transparent" />
                 </div>
             </section>
 

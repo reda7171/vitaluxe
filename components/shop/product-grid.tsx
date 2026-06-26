@@ -6,9 +6,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, ShoppingCart, Heart, Eye } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useCart } from "@/lib/context/cart-context";
-import type { Product } from "@/lib/data/products";
+import { Button } from "../ui/button";
+import { useCart } from "../../lib/context/cart-context";
+import type { Product } from "../../lib/data/products";
 
 const BADGE_STYLES: Record<string, string> = {
     Nouveau: "bg-primary text-primary-foreground",
@@ -46,6 +46,8 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: ViewMo
     const [wished, setWished] = useState(false);
     const [added, setAdded] = useState(false);
 
+    const isInStock = product.inStock !== undefined ? product.inStock : ((product.stock ?? 1) > 0);
+
     const price = product.salePrice ?? product.price;
     const discountPct = product.salePrice
         ? Math.round(((product.price - product.salePrice) / product.price) * 100)
@@ -53,7 +55,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: ViewMo
 
     const handleAdd = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (!product.inStock) return;
+        if (!isInStock) return;
         addItem(product, 1);
         setAdded(true);
         setTimeout(() => setAdded(false), 1500);
@@ -68,13 +70,13 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: ViewMo
                 className="group bg-card rounded-2xl border hover:shadow-lg transition-all duration-300 flex gap-0 overflow-hidden"
             >
                 {/* Image */}
-                <Link href={`/product/${product.id}`} className="relative w-40 shrink-0 aspect-square overflow-hidden bg-muted/20">
-                    {!product.inStock && (
+                <Link href={`/product/${product.slug || product.id}`} className="relative w-40 shrink-0 aspect-square overflow-hidden bg-muted/20">
+                    {!isInStock && (
                         <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px] z-10 flex items-center justify-center">
                             <span className="text-xs font-semibold bg-background border rounded-full px-3 py-1">Rupture</span>
                         </div>
                     )}
-                    <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <img src={product.image} alt={product.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </Link>
 
                 {/* Info */}
@@ -87,7 +89,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: ViewMo
                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${BADGE_STYLES[product.badge]}`}>{product.badge}</span>
                                 )}
                             </div>
-                            <Link href={`/product/${product.id}`}>
+                            <Link href={`/product/${product.slug || product.id}`}>
                                 <h3 className="font-semibold text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors">{product.name}</h3>
                             </Link>
                             {product.description && (
@@ -122,12 +124,12 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: ViewMo
                             </Button>
                             <Button
                                 size="sm"
-                                disabled={!product.inStock}
+                                disabled={!isInStock}
                                 onClick={handleAdd}
                                 className="gap-1.5 text-xs shadow-sm shadow-primary/20"
                             >
                                 <ShoppingCart className="h-3.5 w-3.5" />
-                                {product.inStock ? "Ajouter" : "Indisponible"}
+                                {isInStock ? "Ajouter" : "Indisponible"}
                             </Button>
                         </div>
                     </div>
@@ -166,7 +168,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: ViewMo
                 )}
 
                 {/* Out of stock */}
-                {!product.inStock && (
+                {!isInStock && (
                     <div className="absolute inset-0 bg-background/65 backdrop-blur-[2px] z-10 flex items-center justify-center">
                         <span className="text-sm font-semibold bg-background border rounded-full px-4 py-1.5">Rupture de stock</span>
                     </div>
@@ -185,7 +187,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: ViewMo
                 </button>
 
                 {/* Hover overlay */}
-                <Link href={`/product/${product.id}`} className="absolute inset-0 z-[5]">
+                <Link href={`/product/${product.slug || product.id}`} className="absolute inset-0 z-[5]">
                     <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/8 transition-colors duration-300" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
                         <div className="bg-background/95 backdrop-blur-sm border rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold shadow-lg">
@@ -195,6 +197,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: ViewMo
                     <img
                         src={product.image}
                         alt={product.name}
+                        loading="lazy"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                 </Link>
@@ -204,12 +207,12 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: ViewMo
             <div className="flex flex-col flex-1 p-4 gap-2">
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-primary">{product.brand}</span>
-                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${product.inStock ? "text-emerald-600 bg-emerald-50" : "text-muted-foreground bg-muted"}`}>
-                        {product.inStock ? "● En stock" : "● Épuisé"}
+                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${isInStock ? "text-emerald-600 bg-emerald-50" : "text-muted-foreground bg-muted"}`}>
+                        {isInStock ? "● En stock" : "● Épuisé"}
                     </span>
                 </div>
 
-                <Link href={`/product/${product.id}`} className="hover:text-primary transition-colors">
+                <Link href={`/product/${product.slug || product.id}`} className="hover:text-primary transition-colors">
                     <h3 className="font-semibold text-sm leading-snug line-clamp-2">{product.name}</h3>
                 </Link>
 
@@ -231,12 +234,12 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: ViewMo
                     <Button
                         size="sm"
                         className="rounded-full h-9 px-4 gap-1.5 text-xs shadow-md shadow-primary/20"
-                        disabled={!product.inStock}
+                        disabled={!isInStock}
                         onClick={handleAdd}
                         aria-label={`Ajouter ${product.name} au panier`}
                     >
                         <ShoppingCart className="h-3.5 w-3.5" />
-                        {product.inStock ? "Ajouter" : "Épuisé"}
+                        {isInStock ? "Ajouter" : "Épuisé"}
                     </Button>
                 </div>
             </div>

@@ -97,3 +97,81 @@ export async function sendPasswordResetEmail({
         </div>`,
     });
 }
+
+export async function sendOrderStatusEmail({
+    to, name, orderId, status
+}: {
+    to: string;
+    name: string;
+    orderId: string;
+    status: string;
+}) {
+    if (!process.env.RESEND_API_KEY) {
+        console.log(`📧 [DEV] Statut commande #${orderId.slice(0, 8)} -> ${status} pour ${to}`);
+        return;
+    }
+
+    const statusInfo: Record<string, { icon: string, label: string, color: string, message: string }> = {
+        PROCESSING: {
+            icon: "📦",
+            label: "En cours de préparation",
+            color: "#103178",
+            message: "Bonne nouvelle ! Nous préparons actuellement vos produits avec le plus grand soin."
+        },
+        SHIPPED: {
+            icon: "🚚",
+            label: "Commande expédiée",
+            color: "#8b5cf6",
+            message: "Votre colis est en route ! Il a été remis à notre partenaire de livraison."
+        },
+        DELIVERED: {
+            icon: "✅",
+            label: "Commande livrée",
+            color: "#10b981",
+            message: "Votre commande a été livrée. Nous espérons que vos produits vous apporteront entière satisfaction !"
+        },
+        CANCELLED: {
+            icon: "❌",
+            label: "Commande annulée",
+            color: "#ef4444",
+            message: "Votre commande a été annulée. Si vous n'êtes pas à l'origine de cette demande, n'hésitez pas à nous contacter."
+        }
+    };
+
+    const info = statusInfo[status];
+    if (!info) return;
+
+    await resend.emails.send({
+        from: "Vitaluxe <commandes@vitaluxe.ma>",
+        to,
+        subject: `${info.icon} Mise à jour de votre commande #${orderId.slice(0, 8).toUpperCase()} — Vitaluxe`,
+        html: `
+        <div style="font-family:sans-serif;max-width:520px;margin:auto;background:#f8fafc;">
+            <div style="background:linear-gradient(135deg,#103178,#1a4db8);padding:32px;border-radius:16px 16px 0 0;text-align:center;">
+                <h1 style="color:white;margin:0;font-size:24px;font-weight:900;">Vitaluxe</h1>
+            </div>
+            <div style="background:white;padding:32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 16px 16px;">
+                <div style="text-align:center;margin-bottom:24px;">
+                    <span style="font-size:48px;">${info.icon}</span>
+                    <h2 style="color:${info.color};margin:16px 0 8px;font-size:20px;">${info.label}</h2>
+                    <p style="color:#64748b;margin:0;">Commande #${orderId.slice(0, 8).toUpperCase()}</p>
+                </div>
+
+                <p style="color:#1e293b;line-height:1.6;margin:0 0 24px;">
+                    Bonjour ${name || "cher client"},<br/><br/>
+                    ${info.message}
+                </p>
+
+                <div style="text-align:center;margin:32px 0;">
+                    <a href="${process.env.NEXTAUTH_URL}/account/orders/${orderId}" style="background:#103178;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;">
+                        Suivre ma commande
+                    </a>
+                </div>
+
+                <p style="margin:32px 0 0;color:#94a3b8;font-size:12px;text-align:center;">
+                    Merci de votre confiance,<br/>L'équipe Vitaluxe
+                </p>
+            </div>
+        </div>`,
+    });
+}

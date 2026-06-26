@@ -18,7 +18,7 @@ const POSTS = [
         category: "Soins Visage",
         date: "28 Fév 2026",
         readTime: "5 min",
-        image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=1200&auto=format&fit=crop",
+        image: "/blog/visage-routine.png",
     },
     {
         slug: "complements-alimentaires-guide",
@@ -27,7 +27,7 @@ const POSTS = [
         category: "Santé",
         date: "20 Fév 2026",
         readTime: "7 min",
-        image: "https://images.unsplash.com/photo-1550572017-edb799be0d36?q=80&w=800&auto=format&fit=crop",
+        image: "/blog/complements-guide.png",
     },
     {
         slug: "protection-solaire-maroc",
@@ -36,7 +36,7 @@ const POSTS = [
         category: "Solaires",
         date: "15 Fév 2026",
         readTime: "4 min",
-        image: "https://images.unsplash.com/photo-1526413232644-8a40f41ce931?q=80&w=800&auto=format&fit=crop",
+        image: "/blog/protection-solaire.png",
     },
     {
         slug: "chute-cheveux-solutions",
@@ -45,7 +45,7 @@ const POSTS = [
         category: "Cheveux",
         date: "10 Fév 2026",
         readTime: "6 min",
-        image: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800&auto=format&fit=crop",
+        image: "/blog/chute-cheveux.png",
     },
     {
         slug: "hydrater-peau-seche-hiver",
@@ -54,7 +54,7 @@ const POSTS = [
         category: "Soins Corps",
         date: "5 Fév 2026",
         readTime: "5 min",
-        image: "https://images.unsplash.com/photo-1615397323293-875b2258832c?q=80&w=800&auto=format&fit=crop",
+        image: "/blog/hydratation-hiver.png",
     },
     {
         slug: "bebe-soins-naturels",
@@ -63,7 +63,7 @@ const POSTS = [
         category: "Bébé",
         date: "1 Fév 2026",
         readTime: "8 min",
-        image: "https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&auto=format&fit=crop",
+        image: "/blog/bebe-soins.png",
     },
 ];
 
@@ -100,9 +100,9 @@ export default function BlogPage() {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
                 {/* Category Navigation */}
-                <div className="flex bg-white rounded-2xl shadow-sm border border-slate-200 p-2 overflow-x-auto hide-scrollbar mb-12">
+                <div className="flex items-center justify-start bg-white/90 backdrop-blur-md rounded-full shadow-md border border-slate-200/60 p-2 mx-auto max-w-fit overflow-x-auto hide-scrollbar mb-16">
                     {CATEGORIES.map((cat, i) => (
-                        <button key={cat} className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${i === 0 ? 'bg-[#103178] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+                        <button key={cat} className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${i === 0 ? 'bg-[#103178] text-white shadow-md shadow-[#103178]/20' : 'text-slate-600 hover:text-[#103178] hover:bg-slate-100'}`}>
                             {cat}
                         </button>
                     ))}

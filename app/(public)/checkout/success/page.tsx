@@ -3,7 +3,7 @@
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useCart } from "@/lib/context/cart-context";
+import { useCart } from "../../../../lib/context/cart-context";
 import { CheckCircle2, Package, ArrowRight, ShoppingBag, Home, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";

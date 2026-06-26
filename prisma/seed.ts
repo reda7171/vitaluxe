@@ -139,7 +139,10 @@ async function main() {
 
     for (const prod of productsData) {
         await prisma.product.create({
-            data: prod
+            data: {
+                ...prod,
+                images: JSON.stringify(prod.images)
+            }
         })
     }
 

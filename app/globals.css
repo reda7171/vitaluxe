@@ -120,8 +120,9 @@
     @apply border-border outline-ring/50;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  html, body {
+    @apply text-foreground bg-background;
+    /* Removed overflow-x-hidden as it breaks Next.js scroll-to-top on route change */
   }
 }
 
@@ -134,4 +135,19 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
 }

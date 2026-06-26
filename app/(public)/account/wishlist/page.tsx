@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { WishlistPageClient } from "@/components/account/wishlist-view";
+import { WishlistPageClient } from "../../../../components/account/wishlist-view";
 
 export const metadata: Metadata = {
     title: "Ma Liste de Souhaits | Vitaluxe",

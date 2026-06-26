@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { SlidersHorizontal, Search, Grid3X3, List, ShoppingCart, Heart, Sparkles, ArrowRight } from "lucide-react";
-import { useCart } from "@/lib/context/cart-context";
-import { useWishlist } from "@/lib/context/wishlist-context";
+import { useCart } from "../../lib/context/cart-context";
+import { useWishlist } from "../../lib/context/wishlist-context";
 import { toast } from "sonner";
-import type { Product } from "@/lib/data/products";
+import type { Product } from "../../lib/data/products";
 
 interface DbProduct {
     id: string;
@@ -30,15 +30,22 @@ interface Category {
     slug: string;
 }
 
+interface Brand {
+    id: string;
+    name: string;
+    slug: string;
+}
+
 interface ShopViewProps {
     products: DbProduct[];
     categories: Category[];
+    dbBrands?: Brand[];
 }
 
 // Adapter DB product -> CartContext Product type
 function toCartProduct(p: DbProduct): Product {
     return {
-        id: p.id as unknown as number,
+        id: p.id,
         name: p.name,
         slug: p.slug,
         description: p.description ?? "",
@@ -51,31 +58,71 @@ function toCartProduct(p: DbProduct): Product {
         stock: p.stock,
         badge: undefined,
         rating: 0,
-        reviewCount: 0,
-    } as unknown as Product;
+        reviews: 0,
+    };
 }
 
-export function ShopView({ products, categories }: ShopViewProps) {
+export function ShopView({ products, categories, dbBrands }: ShopViewProps) {
     const searchParams = useSearchParams();
     const { addItem } = useCart();
     const { items: wishlist, toggleWishlist } = useWishlist();
 
     const [search, setSearch] = useState(searchParams.get("search") ?? "");
-    const initCat = searchParams.get("cat");
-    const [selectedCats, setSelectedCats] = useState<string[]>(initCat ? [initCat] : []);
-    const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+    const initCat = searchParams.get("cat") || searchParams.get("category");
+    const initBrand = searchParams.get("brand");
+
+    const initialCats = useMemo(() => {
+        if (!initCat) return [];
+        const matching = categories.find(c => c.slug === initCat || c.name.toLowerCase() === initCat.toLowerCase());
+        return matching ? [matching.name] : [initCat];
+    }, [initCat, categories]);
+
+    const initialBrands = useMemo(() => {
+        if (!initBrand) return [];
+        const matching = dbBrands?.find(b => b.slug === initBrand || b.name.toLowerCase() === initBrand.toLowerCase());
+        return matching ? [matching.name] : [initBrand];
+    }, [initBrand, dbBrands]);
+
+    const [selectedCats, setSelectedCats] = useState<string[]>(initialCats);
+    const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrands);
+
+    // Sync state with URL params on change
+    useEffect(() => {
+        setSelectedCats(initialCats);
+    }, [initialCats]);
+
+    useEffect(() => {
+        setSelectedBrands(initialBrands);
+    }, [initialBrands]);
+
+    // L'utilisateur venait de la page d'accueil vers une marque, on s'assure qu'on remonte en haut
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [initBrand, initCat]);
+
     const [sortBy, setSortBy] = useState("newest");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [maxPrice, setMaxPrice] = useState(10000);
+    const [promoOnly, setPromoOnly] = useState(searchParams.get("badge") === "Promo");
 
-    // Unique brands
-    const brands = useMemo(() => Array.from(new Set(products.map(p => p.brand).filter(Boolean))).sort(), [products]);
+    useEffect(() => {
+        setPromoOnly(searchParams.get("badge") === "Promo");
+    }, [searchParams]);
+
+    // Unique brands - favor dbBrands if available, otherwise calculate from products
+    const brands = useMemo(() => {
+        if (dbBrands && dbBrands.length > 0) {
+            return dbBrands.map(b => b.name);
+        }
+        return Array.from(new Set(products.map(p => p.brand).filter(Boolean))).sort() as string[];
+    }, [products, dbBrands]);
 
     const filtered = useMemo(() => {
         let list = products;
         if (search) list = list.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()) || p.brand?.toLowerCase().includes(search.toLowerCase()));
         if (selectedCats.length > 0) list = list.filter((p) => selectedCats.includes(p.category));
         if (selectedBrands.length > 0) list = list.filter((p) => selectedBrands.includes(p.brand));
+        if (promoOnly) list = list.filter((p) => !!p.salePrice);
         list = list.filter((p) => (p.salePrice ?? p.price) <= maxPrice);
         switch (sortBy) {
             case "price-asc": return [...list].sort((a, b) => (a.salePrice ?? a.price) - (b.salePrice ?? b.price));
@@ -83,7 +130,7 @@ export function ShopView({ products, categories }: ShopViewProps) {
             case "instock": return list.filter((p) => p.stock > 0);
             default: return list;
         }
-    }, [products, search, selectedCats, selectedBrands, sortBy, maxPrice]);
+    }, [products, search, selectedCats, selectedBrands, sortBy, maxPrice, promoOnly]);
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -103,15 +150,27 @@ export function ShopView({ products, categories }: ShopViewProps) {
                             <SlidersHorizontal size={18} /> Filtres
                         </h2>
 
-                        <div className="mb-4">
-                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">Recherche</label>
-                            <div className="relative">
-                                <Search size={16} className="absolute left-3 top-2.5 text-slate-400" />
+                        <div className="mb-6 space-y-4">
+                            <label className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 block">Parcourir</label>
+                            
+                            <label className="flex items-center gap-3 cursor-pointer group p-2 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all">
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${promoOnly ? "bg-red-500 border-red-500 scale-110 shadow-lg shadow-red-500/20" : "border-slate-300 group-hover:border-red-400"}`}>
+                                    {promoOnly && <Sparkles className="w-3 h-3 text-white" strokeWidth={3} />}
+                                </div>
+                                <input type="checkbox" className="hidden" checked={promoOnly} onChange={() => setPromoOnly(!promoOnly)} />
+                                <div className="flex flex-col">
+                                    <span className={`text-sm font-bold ${promoOnly ? "text-red-600" : "text-slate-700"}`}>🔥 Promotions</span>
+                                    <span className="text-[10px] text-slate-400 font-medium">Offres spéciales</span>
+                                </div>
+                            </label>
+
+                            <div className="relative pt-2">
+                                <Search size={16} className="absolute left-3 top-4.5 translate-y-2 text-slate-400" />
                                 <input
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Nom, marque..."
-                                    className="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#103178]/30"
+                                    placeholder="Rechercher..."
+                                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#103178]/5 transition-all"
                                 />
                             </div>
                         </div>
@@ -178,26 +237,81 @@ export function ShopView({ products, categories }: ShopViewProps) {
                 </aside>
 
                 {/* Produits */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-4 bg-white rounded-xl border border-slate-200 px-4 py-3 shadow-sm">
-                        <span className="text-sm text-slate-500">{filtered.length} résultat{filtered.length !== 1 ? "s" : ""}</span>
+                <div className="flex-1 min-w-0 space-y-4">
+                    {/* Search & Mobile Filters */}
+                    <div className="lg:hidden flex flex-col gap-3 mb-6 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <div className="relative">
+                            <Search size={18} className="absolute left-3.5 top-3 text-slate-400" />
+                            <input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Rechercher un produit, une marque..."
+                                className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#103178]/20 bg-slate-50/50"
+                            />
+                        </div>
+                        <div className="flex gap-2 w-full overflow-x-auto hide-scrollbar pb-1">
+                            <select
+                                value={selectedCats[0] || "all"}
+                                onChange={(e) => setSelectedCats(e.target.value === "all" ? [] : [e.target.value])}
+                                className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none whitespace-nowrap"
+                            >
+                                <option value="all">Catégories</option>
+                                {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                            </select>
+                            <select
+                                value={selectedBrands[0] || "all"}
+                                onChange={(e) => setSelectedBrands(e.target.value === "all" ? [] : [e.target.value])}
+                                className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none whitespace-nowrap"
+                            >
+                                <option value="all">Marques</option>
+                                {brands.map(b => <option key={b} value={b}>{b}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200 px-6 py-4 shadow-sm">
+                        <span className="text-sm font-medium text-slate-500">{filtered.length} résultat{filtered.length !== 1 ? "s" : ""}</span>
                         <div className="flex items-center gap-3">
+                            {/* Desktop only Category & Brand Selects for convenience */}
+                            <div className="hidden sm:flex items-center gap-2">
+                                <select
+                                    value={selectedCats[0] || "all"}
+                                    onChange={(e) => setSelectedCats(e.target.value === "all" ? [] : [e.target.value])}
+                                    className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none bg-slate-50/50 hover:bg-slate-100 transition-colors cursor-pointer"
+                                >
+                                    <option value="all">Catégories</option>
+                                    {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                </select>
+                                <select
+                                    value={selectedBrands[0] || "all"}
+                                    onChange={(e) => setSelectedBrands(e.target.value === "all" ? [] : [e.target.value])}
+                                    className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none bg-slate-50/50 hover:bg-slate-100 transition-colors cursor-pointer"
+                                >
+                                    <option value="all">Marques</option>
+                                    {brands.map(b => <option key={b} value={b}>{b}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="h-4 w-[1px] bg-slate-200 mx-1 hidden sm:block" />
+
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none"
+                                className="text-xs font-semibold border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none bg-white hover:bg-slate-50 transition-colors cursor-pointer"
                             >
                                 <option value="newest">Plus récents</option>
                                 <option value="price-asc">Prix croissant</option>
                                 <option value="price-desc">Prix décroissant</option>
                                 <option value="instock">En stock</option>
                             </select>
-                            <button onClick={() => setViewMode("grid")} className={`p-1.5 rounded ${viewMode === "grid" ? "bg-slate-100" : ""}`}>
-                                <Grid3X3 size={18} className="text-slate-600" />
-                            </button>
-                            <button onClick={() => setViewMode("list")} className={`p-1.5 rounded ${viewMode === "list" ? "bg-slate-100" : ""}`}>
-                                <List size={18} className="text-slate-600" />
-                            </button>
+                            <div className="flex items-center border border-slate-200 rounded-lg p-1 bg-slate-50/50">
+                                <button onClick={() => setViewMode("grid")} className={`p-1 rounded-md transition-all ${viewMode === "grid" ? "bg-white shadow-sm text-[#103178]" : "text-slate-400"}`}>
+                                    <Grid3X3 size={16} />
+                                </button>
+                                <button onClick={() => setViewMode("list")} className={`p-1 rounded-md transition-all ${viewMode === "list" ? "bg-white shadow-sm text-[#103178]" : "text-slate-400"}`}>
+                                    <List size={16} />
+                                </button>
+                            </div>
                         </div>
                     </div>
 

@@ -1,12 +1,18 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'standalone',
   /* config options here */
   images: {
+    unoptimized: true, // Désactive Sharp pour réduire la consommation RAM au maximum (économise ~200Mo)
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'plus.unsplash.com' },
     ],
+  },
+  experimental: {
+    webpackBuildWorker: false,
+    cpus: 1,
+    memoryBasedWorkersCount: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
@@ -26,6 +32,12 @@ const nextConfig: NextConfig = {
           { key: 'X-XSS-Protection', value: '1; mode=block' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' }
+        ]
+      },
+      {
+        source: '/(.*\\.(?:png|jpg|jpeg|webp|gif|svg|ico|woff2?|ttf|otf))',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }
         ]
       }
     ];

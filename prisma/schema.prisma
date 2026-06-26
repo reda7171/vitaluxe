@@ -1,5 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+  engineType    = "library"
 }
 
 datasource db {
@@ -8,20 +10,20 @@ datasource db {
 }
 
 model User {
-  id         String              @id @default(cuid())
-  name       String?
-  email      String              @unique
-  password   String
-  role       Role                @default(CUSTOMER)
-  createdAt  DateTime            @default(now())
-  phone      String?
-  image      String?
-  addresses  Address[]
-  orders     Order[]
-  resetToken PasswordResetToken?
-  reviews    Review[]
-  wishlist   Wishlist[]
+  id            String              @id @default(cuid())
+  name          String?
+  email         String              @unique
+  password      String
+  role          Role                @default(CUSTOMER)
+  createdAt     DateTime            @default(now())
+  phone         String?
+  image         String?
+  addresses     Address[]
+  orders        Order[]
+  resetToken    PasswordResetToken?
   prescriptions Prescription[]
+  reviews       Review[]
+  wishlist      Wishlist[]
 }
 
 model Product {
@@ -32,7 +34,7 @@ model Product {
   price       Float
   salePrice   Float?
   stock       Int         @default(0)
-  images      Json?
+  images      String?     @db.LongText
   categoryId  String
   brand       String?
   createdAt   DateTime    @default(now())
@@ -51,7 +53,7 @@ model Review {
   userId    String
   rating    Int
   comment   String   @db.Text
-  images    Json?
+  images    String?  @db.LongText
   status    String   @default("PENDING")
   createdAt DateTime @default(now())
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -70,10 +72,10 @@ model Category {
 }
 
 model Brand {
-  id       String    @id @default(cuid())
-  name     String    @unique
-  slug     String    @unique
-  image    String?   @db.LongText
+  id    String  @id @default(cuid())
+  name  String  @unique
+  slug  String  @unique
+  image String? @db.LongText
 }
 
 model Order {
@@ -161,25 +163,6 @@ model ContactMessage {
   createdAt DateTime      @default(now())
 }
 
-enum Role {
-  ADMIN
-  CUSTOMER
-}
-
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-}
-
-enum MessageStatus {
-  UNREAD
-  READ
-  REPLIED
-}
-
 model NewsletterLead {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -214,12 +197,46 @@ model Banner {
 
 model StoreSettings {
   id        String   @id @default("1")
-  boutique  Json?
-  livraison Json?
-  paiement  Json?
-  notifs    Json?
-  apparence Json?
+  boutique  String?  @db.LongText
+  livraison String?  @db.LongText
+  paiement  String?  @db.LongText
+  notifs    String?  @db.LongText
+  apparence String?  @db.LongText
   updatedAt DateTime @updatedAt
+  footer    String?  @db.LongText
+  header    String?  @db.LongText
 }
 
+model AbandonedCart {
+  id          String    @id @default(cuid())
+  userId      String?
+  email       String    @unique
+  name        String?
+  items       String    @db.LongText
+  totalAmount Float
+  sentAt      DateTime?
+  recoveredAt DateTime?
+  updatedAt   DateTime  @default(now()) @updatedAt
+  createdAt   DateTime  @default(now())
 
+  @@index([sentAt])
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  REPLIED
+}

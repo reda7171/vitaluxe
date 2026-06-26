@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShoppingCart, Star, Package, Tag, ShieldCheck, Truck, CreditCard, CheckCircle2 } from "lucide-react";
-import { useCart } from "@/lib/context/cart-context";
-import type { Product as CartProduct } from "@/lib/data/products";
+import { ShoppingCart, Star, Package, Tag, ShieldCheck, Truck, CheckCircle2, Plus, Zap, Heart } from "lucide-react";
+import { useCart } from "../../lib/context/cart-context";
+import { useWishlist } from "../../lib/context/wishlist-context";
+import { useRecentlyViewed } from "../../lib/hooks/use-recently-viewed";
+import { RecentlyViewed } from "./recently-viewed";
+import type { Product as CartProduct } from "../../lib/data/products";
 
 interface DbProduct {
     id: string;
@@ -16,6 +19,7 @@ interface DbProduct {
     stock: number;
     images: string[];
     brand: string;
+    brandImage?: string | null;
     category: string;
 }
 
@@ -32,7 +36,7 @@ interface RelatedProduct {
 
 function toCartProduct(p: DbProduct): CartProduct {
     return {
-        id: p.id as unknown as number,
+        id: p.id,
         name: p.name,
         slug: p.slug,
         description: p.description,
@@ -45,15 +49,31 @@ function toCartProduct(p: DbProduct): CartProduct {
         stock: p.stock,
         badge: undefined,
         rating: 0,
-        reviewCount: 0,
-    } as unknown as CartProduct;
+        reviews: 0,
+    };
 }
 
 export function ProductDetailView({ product, related }: { product: DbProduct; related: RelatedProduct[] }) {
     const { addItem } = useCart();
+    const { addView } = useRecentlyViewed();
+    const { isInWishlist, toggleWishlist } = useWishlist();
+    const isWishlisted = isInWishlist(product.id);
     const [activeImage, setActiveImage] = useState(0);
     const [qty, setQty] = useState(1);
     const [activeTab, setActiveTab] = useState<'desc' | 'info'>('desc');
+
+    // Forcer le scroll en haut au chargement de la page produit
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [product.id]);
+
+    const handleAdd = () => {
+        if (product.id) addView(product.id);
+    };
+
+    useEffect(() => {
+        handleAdd();
+    }, [product.id, addView]);
 
     const images: string[] = (() => {
         const raw = product.images;
@@ -104,8 +124,26 @@ export function ProductDetailView({ product, related }: { product: DbProduct; re
                             )}
                             {/* Badges sur l'image */}
                             <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
-                                {discount > 0 && <span className="bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">-{discount}% Offre</span>}
-                                {product.stock > 0 && product.stock <= 5 && <span className="bg-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">Dernières pièces</span>}
+                                {discount > 0 && (
+                                    <span className="bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">-{discount}% Offre</span>
+                                )}
+                                {product.stock > 0 && product.stock <= 3 && (
+                                    <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+                                        Plus que {product.stock} en stock !
+                                    </span>
+                                )}
+                                {product.stock > 3 && product.stock <= 10 && (
+                                    <span className="inline-flex items-center gap-1.5 bg-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
+                                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                        Stock limité ({product.stock} restants)
+                                    </span>
+                                )}
+                                {product.stock > 10 && product.stock <= 20 && (
+                                    <span className="inline-flex items-center gap-1.5 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
+                                        Bientôt épuisé
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -117,7 +155,7 @@ export function ProductDetailView({ product, related }: { product: DbProduct; re
                                         onClick={() => setActiveImage(i)}
                                         className={`shrink-0 w-20 h-20 rounded-2xl border-2 overflow-hidden transition-all duration-200 bg-white ${i === activeImage ? "border-[#103178] shadow-md scale-105" : "border-slate-100 hover:border-slate-300 opacity-70 hover:opacity-100"}`}
                                     >
-                                        <img src={img} alt="" className="w-full h-full object-contain mix-blend-multiply p-2" />
+                                        <img loading="lazy" src={img} alt="" className="w-full h-full object-cover" />
                                     </button>
                                 ))}
                             </div>
@@ -127,7 +165,6 @@ export function ProductDetailView({ product, related }: { product: DbProduct; re
                     {/* Infos */}
                     <div className="space-y-5">
                         <div>
-                            <span className="text-sm text-[#103178] font-semibold">{product.brand}</span>
                             <h1 className="text-3xl font-extrabold text-slate-900 mt-1 leading-tight">{product.name}</h1>
                             <div className="flex items-center gap-1 mt-2">
                                 {[1, 2, 3, 4, 5].map((s) => (
@@ -151,34 +188,84 @@ export function ProductDetailView({ product, related }: { product: DbProduct; re
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Package size={16} className={product.stock > 0 ? "text-green-500" : "text-red-500"} />
-                            <span className={`text-sm font-medium ${product.stock > 0 ? "text-green-600" : "text-red-600"}`}>
-                                {product.stock > 0 ? `En stock (${product.stock} disponibles)` : "Rupture de stock"}
-                            </span>
+                            <Package size={16} className={product.stock > 0 ? (product.stock <= 3 ? "text-red-500" : "text-green-500") : "text-red-500"} />
+                            {product.stock === 0 ? (
+                                <span className="text-sm font-medium text-red-600">Rupture de stock</span>
+                            ) : product.stock <= 3 ? (
+                                <span className="text-sm font-bold text-red-600 flex items-center gap-1.5">
+                                    <span className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                                    Seulement {product.stock} en stock — dépêchez-vous !
+                                </span>
+                            ) : product.stock <= 10 ? (
+                                <span className="text-sm font-semibold text-amber-600">Stock limité ({product.stock} disponibles)</span>
+                            ) : (
+                                <span className="text-sm font-medium text-green-600">En stock ({product.stock} disponibles)</span>
+                            )}
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <Tag size={14} className="text-slate-400" />
-                            <span className="text-sm text-slate-500">{product.category}</span>
+                        <div className="flex flex-col gap-3 py-2">
+                            <div className="flex items-center gap-2">
+                                <Tag size={14} className="text-slate-400" />
+                                <span className="text-sm text-slate-500">{product.category}</span>
+                            </div>
+
+                            {product.brandImage && (
+                                <Link href={`/shop?brand=${encodeURIComponent(product.brand)}`} className="group">
+                                    <div className="flex items-center gap-4 pt-2 border-t border-slate-50">
+                                        <div className="h-16 w-32 relative bg-slate-50 rounded-xl p-2 flex items-center justify-center border border-slate-100 shadow-sm overflow-hidden group-hover:border-[#103178]/30 group-hover:shadow-md transition-all">
+                                            <img
+                                                src={product.brandImage}
+                                                alt={product.brand}
+                                                className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"
+                                            />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2d6a4f]/60 mb-0.5">Marque</p>
+                                            <p className="text-sm font-bold text-slate-900 group-hover:text-[#103178] transition-colors">{product.brand}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            )}
                         </div>
 
-                        <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">{product.description}</p>
+                        <p className="text-slate-600 text-sm leading-relaxed line-clamp-3" dangerouslySetInnerHTML={{ __html: product.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() }} />
 
                         {/* Quantité + Panier */}
-                        <div className="flex items-center gap-3 pt-2">
-                            <div className="flex items-center border border-slate-300 rounded-xl overflow-hidden">
-                                <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-4 py-2 text-slate-600 hover:bg-slate-100 transition-colors font-bold">−</button>
-                                <span className="px-4 py-2 font-semibold text-slate-900 min-w-[2.5rem] text-center">{qty}</span>
-                                <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="px-4 py-2 text-slate-600 hover:bg-slate-100 transition-colors font-bold">+</button>
+                        <div className="flex flex-col gap-3 pt-2">
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center border border-slate-300 rounded-xl overflow-hidden bg-white">
+                                    <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-4 py-2 text-slate-600 hover:bg-slate-100 transition-colors font-bold">−</button>
+                                    <span className="px-4 py-2 font-semibold text-slate-900 min-w-[2.5rem] text-center">{qty}</span>
+                                    <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="px-4 py-2 text-slate-600 hover:bg-slate-100 transition-colors font-bold">+</button>
+                                </div>
+                                <button
+                                    onClick={() => addItem(toCartProduct(product), qty)}
+                                    disabled={product.stock === 0}
+                                    className="flex-1 flex items-center justify-center gap-2 bg-[#103178] hover:bg-[#0d266b] text-white font-bold py-3 rounded-xl transition-all disabled:opacity-40 shadow-lg shadow-[#103178]/20"
+                                >
+                                    <ShoppingCart size={20} />
+                                    Ajouter au panier
+                                </button>
+                                <button
+                                    onClick={() => toggleWishlist(product.id, product.name)}
+                                    className={`flex items-center justify-center w-12 h-12 rounded-xl shrink-0 transition-all border ${isWishlisted ? 'bg-rose-50 border-rose-200 text-rose-500' : 'bg-white border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-200'}`}
+                                    title="Favoris"
+                                >
+                                    <Heart size={22} className={isWishlisted ? "fill-rose-500" : ""} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => addItem(toCartProduct(product), qty)}
-                                disabled={product.stock === 0}
-                                className="flex-1 flex items-center justify-center gap-2 bg-[#103178] hover:bg-[#0d266b] text-white font-bold py-3 rounded-xl transition-all disabled:opacity-40 shadow-lg shadow-[#103178]/20"
+
+                            <a
+                                href={`https://wa.me/212666695486?text=${encodeURIComponent(`Bonjour Vitaluxe, je souhaite commander le produit : ${product.name}`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-[#25D366]/20 transition-all active:scale-[0.98]"
                             >
-                                <ShoppingCart size={20} />
-                                Ajouter au panier
-                            </button>
+                                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.438 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                </svg>
+                                Commander via WhatsApp
+                            </a>
                         </div>
 
                         {/* Réassurance & Paiement */}
@@ -242,8 +329,8 @@ export function ProductDetailView({ product, related }: { product: DbProduct; re
                     </div>
                     <div className="p-8 md:p-12">
                         {activeTab === 'desc' ? (
-                            <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed space-y-8 text-sm">
-                                <p>{product.description}</p>
+                            <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed space-y-4 text-sm [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1.5 [&_li]:text-slate-600 [&_strong]:text-slate-900 [&_strong]:font-semibold">
+                                <div dangerouslySetInnerHTML={{ __html: product.description }} />
 
                                 {product.brand && product.brand.toUpperCase().includes("VICHY") && (
                                     <>
@@ -300,6 +387,9 @@ export function ProductDetailView({ product, related }: { product: DbProduct; re
                     </div>
                 </div>
 
+                {/* Achetez-le ensemble (Cross-sell) */}
+                {related.length > 0 && <BuyTogetherSection mainProduct={product} related={related} addItem={addItem} />}
+
                 {/* Produits similaires */}
                 {related.length > 0 && (
                     <section className="mt-16">
@@ -315,7 +405,7 @@ export function ProductDetailView({ product, related }: { product: DbProduct; re
                                     <Link key={p.id} href={`/product/${p.slug}`} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
                                         <div className="aspect-square shrink-0">
                                             {relImgs[0] ? (
-                                                <img src={relImgs[0]} alt={p.name} className="w-full h-full object-cover" />
+                                                <img loading="lazy" src={relImgs[0]} alt={p.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full bg-slate-100 flex items-center justify-center text-3xl">💊</div>
                                             )}
@@ -330,7 +420,146 @@ export function ProductDetailView({ product, related }: { product: DbProduct; re
                         </div>
                     </section>
                 )}
+
+                {/* Produits récemment vus */}
+                <RecentlyViewed excludeId={product.id} />
             </div>
         </main>
+    );
+}
+
+// ─── BuyTogetherSection ─────────────────────────────────────────────────────
+function BuyTogetherSection({
+    mainProduct,
+    related,
+    addItem,
+}: {
+    mainProduct: DbProduct;
+    related: RelatedProduct[];
+    addItem: (product: CartProduct, qty: number) => void;
+}) {
+    const crossProducts = related.slice(0, 2);
+    const [selected, setSelected] = useState<Set<string>>(() => new Set(crossProducts.map((p) => p.id)));
+    const [added, setAdded] = useState(false);
+
+    const toggle = (id: string) => {
+        setSelected((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const mainPrice = mainProduct.salePrice ?? mainProduct.price;
+    const extrasTotal = crossProducts
+        .filter((p) => selected.has(p.id))
+        .reduce((acc, p) => acc + (p.salePrice ?? p.price), 0);
+    const total = mainPrice + extrasTotal;
+    const count = 1 + selected.size;
+
+    const handleAddAll = () => {
+        // main product
+        addItem(
+            {
+                id: mainProduct.id, name: mainProduct.name, slug: mainProduct.slug,
+                description: mainProduct.description, price: mainProduct.price,
+                salePrice: mainProduct.salePrice ?? null, images: mainProduct.images,
+                brand: mainProduct.brand, category: mainProduct.category,
+                inStock: mainProduct.stock > 0, stock: mainProduct.stock,
+                badge: undefined, rating: 0, reviews: 0,
+            },
+            1
+        );
+        // cross-sell selected
+        crossProducts.filter((p) => selected.has(p.id)).forEach((p) => {
+            const imgs: string[] = Array.isArray(p.images) ? p.images as string[] :
+                typeof p.images === "string" ? (() => { try { return JSON.parse(p.images as unknown as string); } catch { return []; } })() : [];
+            addItem(
+                {
+                    id: p.id, name: p.name, slug: p.slug, description: "",
+                    price: p.price, salePrice: p.salePrice ?? null, images: imgs,
+                    brand: p.brand, category: p.category,
+                    inStock: true, stock: 99, badge: undefined, rating: 0, reviews: 0,
+                },
+                1
+            );
+        });
+        setAdded(true);
+        setTimeout(() => setAdded(false), 2500);
+    };
+
+    const getImg = (imgs: string[] | unknown): string | null => {
+        const arr: string[] = Array.isArray(imgs) ? imgs as string[] :
+            typeof imgs === "string" ? (() => { try { return JSON.parse(imgs); } catch { return []; } })() : [];
+        return arr[0] ?? null;
+    };
+
+    return (
+        <section className="mt-16 bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8">
+            <div className="flex items-center gap-2 mb-6">
+                <Zap size={20} className="text-amber-500" />
+                <h2 className="text-xl font-bold text-slate-900">Achetez-le ensemble</h2>
+                <span className="ml-2 text-xs bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full">Économisez plus</span>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+                {/* Main product */}
+                <div className="flex flex-col items-center gap-2 text-center w-32">
+                    <div className="w-24 h-24 rounded-2xl border-2 border-[#103178] bg-slate-50 overflow-hidden flex items-center justify-center">
+                        {getImg(mainProduct.images) ? (
+                            <img src={getImg(mainProduct.images)!} alt={mainProduct.name} className="w-full h-full object-contain p-1" />
+                        ) : <div className="text-3xl">💊</div>}
+                    </div>
+                    <p className="text-xs font-semibold text-slate-700 line-clamp-2">{mainProduct.name}</p>
+                    <p className="text-sm font-bold text-[#103178]">{mainPrice} MAD</p>
+                </div>
+
+                {crossProducts.map((p, idx) => (
+                    <div key={p.id} className="flex items-center gap-4 md:gap-6">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-lg shrink-0">
+                            <Plus size={16} />
+                        </div>
+                        <div className="flex flex-col items-center gap-2 text-center w-32">
+                            <div className={`w-24 h-24 rounded-2xl border-2 transition-all overflow-hidden flex items-center justify-center bg-slate-50 ${selected.has(p.id) ? "border-[#103178]" : "border-slate-200 opacity-50"
+                                }`}>
+                                {getImg(p.images) ? (
+                                    <img src={getImg(p.images)!} alt={p.name} className="w-full h-full object-contain p-1" />
+                                ) : <div className="text-3xl">💊</div>}
+                            </div>
+                            <p className="text-xs font-semibold text-slate-700 line-clamp-2">{p.name}</p>
+                            <p className="text-sm font-bold text-[#103178]">{p.salePrice ?? p.price} MAD</p>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={selected.has(p.id)}
+                                    onChange={() => toggle(p.id)}
+                                    className="w-4 h-4 accent-[#103178] cursor-pointer"
+                                />
+                                <span className="text-xs text-slate-500">Inclure</span>
+                            </label>
+                        </div>
+                    </div>
+                ))}
+
+                {/* Total + CTA */}
+                <div className="flex-1 flex flex-col gap-3 md:ml-4 mt-4 md:mt-0 w-full md:w-auto">
+                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                        <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">Total pour {count} article{count > 1 ? "s" : ""}</p>
+                        <p className="text-3xl font-extrabold text-[#103178]">{total.toFixed(2)} MAD</p>
+                    </div>
+                    <button
+                        onClick={handleAddAll}
+                        className="w-full flex items-center justify-center gap-2 bg-[#103178] hover:bg-[#0d266b] text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-[#103178]/20 active:scale-95"
+                    >
+                        {added ? (
+                            <><CheckCircle2 size={18} /> Ajouté au panier !</>
+                        ) : (
+                            <><ShoppingCart size={18} /> Ajouter les {count} au panier</>
+                        )}
+                    </button>
+                </div>
+            </div>
+        </section>
     );
 }

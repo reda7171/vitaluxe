@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import stripe from "@/lib/stripe";
-import prisma from "@/lib/prisma";
+import stripe from "../../../../lib/stripe";
+import prisma from "../../../../lib/prisma";
 import { headers } from "next/headers";
 
 export async function POST(req: Request) {
     const body = await req.text();
     const sig = (await headers()).get("stripe-signature");
 
-    if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
-        return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+    if (!sig || !process.env.STRIPE_WEBHOOK_SECRET || !stripe) {
+        return NextResponse.json({ error: "Configuration manquante" }, { status: 400 });
     }
 
     let event;

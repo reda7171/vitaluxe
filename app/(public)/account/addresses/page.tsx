@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AddressesPageClient } from "@/components/account/addresses-view";
+import { AddressesPageClient } from "../../../../components/account/addresses-view";
 
 export const metadata: Metadata = {
     title: "Mes Adresses | Vitaluxe",

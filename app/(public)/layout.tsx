@@ -1,4 +1,4 @@
-import { PublicProviders } from "@/components/layout/public-providers";
+import { PublicProviders } from "../../components/layout/public-providers";
 
 export default function PublicLayout({
     children,

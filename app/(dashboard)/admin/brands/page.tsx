@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Edit, Trash2, Search, Loader2, Tag, X } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../../../components/ui/button";
 
 interface Brand {
     id: string;
@@ -16,6 +16,7 @@ export default function AdminBrandsPage() {
     const [brands, setBrands] = useState<Brand[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     // Modal
     const [isOpen, setIsOpen] = useState(false);
@@ -91,10 +92,46 @@ export default function AdminBrandsPage() {
         const res = await fetch(`/api/admin/brands/${id}`, { method: "DELETE" });
         if (res.ok) {
             toast.success("Marque supprimée", { id: toastId });
+            setSelectedIds(prev => prev.filter(i => i !== id));
             load();
         } else {
             toast.error("Erreur lors de la suppression", { id: toastId });
         }
+    };
+
+    const removeMultiple = async () => {
+        if (!confirm(`Supprimer les ${selectedIds.length} marques sélectionnées ?`)) return;
+        const toastId = toast.loading("Suppression multiple...");
+        try {
+            const res = await fetch("/api/admin/brands/bulk", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ids: selectedIds })
+            });
+            if (res.ok) {
+                toast.success("Marques supprimées", { id: toastId });
+                setSelectedIds([]);
+                load();
+            } else {
+                toast.error("Erreur lors de la suppression multiple", { id: toastId });
+            }
+        } catch (e) {
+            toast.error("Une erreur est survenue", { id: toastId });
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === filtered.length && filtered.length > 0) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(filtered.map(b => b.id));
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
     };
 
     return (
@@ -105,9 +142,16 @@ export default function AdminBrandsPage() {
                     <h1 className="text-2xl font-bold text-slate-900">Marques</h1>
                     <p className="text-sm text-slate-500 mt-1">{brands.length} marque{brands.length !== 1 ? "s" : ""} gérée{brands.length !== 1 ? "s" : ""}</p>
                 </div>
-                <Button onClick={() => openModal()} className="gap-2 bg-[#103178] hover:bg-[#0d266b]">
-                    <Plus size={18} /> Nouvelle marque
-                </Button>
+                <div className="flex items-center gap-3">
+                    {selectedIds.length > 0 && (
+                        <Button onClick={removeMultiple} variant="destructive" className="gap-2">
+                            <Trash2 size={18} /> Supprimer ({selectedIds.length})
+                        </Button>
+                    )}
+                    <Button onClick={() => openModal()} className="gap-2 bg-[#103178] hover:bg-[#0d266b]">
+                        <Plus size={18} /> Nouvelle marque
+                    </Button>
+                </div>
             </div>
 
             {/* Search */}
@@ -126,6 +170,14 @@ export default function AdminBrandsPage() {
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs font-semibold uppercase tracking-wide">
+                            <th className="px-5 py-3 w-10">
+                                <input 
+                                    type="checkbox" 
+                                    className="w-4 h-4 rounded border-slate-300 text-[#103178] focus:ring-[#103178]/20 cursor-pointer"
+                                    checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                                    onChange={toggleSelectAll}
+                                />
+                            </th>
                             <th className="px-5 py-3 w-20">Logo</th>
                             <th className="px-5 py-3">Nom</th>
                             <th className="px-5 py-3 text-right">Actions</th>
@@ -141,11 +193,23 @@ export default function AdminBrandsPage() {
                                 {search ? "Aucun résultat." : "Aucune marque ajoutée."}
                             </td></tr>
                         ) : filtered.map(b => (
-                            <tr key={b.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                            <tr key={b.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${selectedIds.includes(b.id) ? "bg-[#103178]/5" : ""}`}>
+                                <td className="px-5 py-3">
+                                    <input 
+                                        type="checkbox" 
+                                        className="w-4 h-4 rounded border-slate-300 text-[#103178] focus:ring-[#103178]/20 cursor-pointer"
+                                        checked={selectedIds.includes(b.id)}
+                                        onChange={() => toggleSelect(b.id)}
+                                    />
+                                </td>
                                 <td className="px-5 py-3">
                                     <div className="w-10 h-10 rounded bg-white shadow-sm border border-slate-100 flex items-center justify-center p-1 overflow-hidden">
                                         {b.image ? (
-                                            <img src={b.image} alt={b.name} className="w-full h-full object-contain" />
+                                            <img 
+                                                src={b.image} 
+                                                alt={b.name} 
+                                                className="max-w-full max-h-full object-contain" 
+                                            />
                                         ) : (
                                             <Tag className="w-4 h-4 text-slate-300" />
                                         )}
@@ -194,7 +258,11 @@ export default function AdminBrandsPage() {
                                 <div className="flex items-center gap-4">
                                     {form.image && (
                                         <div className="w-16 h-16 rounded-lg border border-slate-200 p-1 flex shrink-0 items-center justify-center bg-slate-50 relative group overflow-hidden">
-                                            <img src={form.image} alt="Aperçu" className="w-full h-full object-contain" />
+                                            <img 
+                                                src={form.image} 
+                                                alt="Aperçu" 
+                                                className="w-full h-full object-contain" 
+                                            />
                                             <button
                                                 type="button"
                                                 onClick={() => setForm({ ...form, image: "" })}

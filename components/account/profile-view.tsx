@@ -6,9 +6,9 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Save, Loader2, CheckCircle2, User, Mail, Phone, MapPin, Bell, ShieldCheck, Camera, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 const MOROCCAN_CITIES = [
     "Casablanca", "Rabat", "Marrakech", "Fès", "Tanger", "Agadir",
@@ -67,10 +67,11 @@ export function ProfileView() {
             .catch(() => setLoading(false));
     }, [session]);
 
+    const [avatarKey, setAvatarKey] = useState(0);
+
     const handleAvatarChange = async (file: File) => {
         if (!file) return;
         setAvatarError("");
-        // Preview immédiat
         const previewUrl = URL.createObjectURL(file);
         setAvatarPreview(previewUrl);
         setUploadingAvatar(true);
@@ -80,8 +81,13 @@ export function ProfileView() {
             const res = await fetch("/api/account/avatar", { method: "POST", body: formData });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
-            setAvatarUrl(data.avatarUrl + `?t=${Date.now()}`);
+            
+            // On ajoute un timestamp pour casser le cache browser
+            const finalUrl = data.avatarUrl + "?v=" + Date.now();
+            setAvatarUrl(finalUrl);
             setAvatarPreview(null);
+            setAvatarKey(prev => prev + 1);
+            
             await updateSession();
         } catch (e: unknown) {
             setAvatarError(e instanceof Error ? e.message : "Erreur upload");
@@ -173,7 +179,18 @@ export function ProfileView() {
                             {uploadingAvatar ? (
                                 <Loader2 className="animate-spin h-6 w-6 text-white" />
                             ) : currentAvatar ? (
-                                <img src={currentAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                                <img
+                                    key={avatarKey}
+                                    src={currentAvatar}
+                                    alt="Avatar"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        if (target.src.includes('?')) {
+                                             target.style.display = 'none';
+                                        }
+                                    }}
+                                />
                             ) : (
                                 <span>{initials}</span>
                             )}

@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Package, Search, ChevronDown, Truck, CheckCircle2, Clock, XCircle, Download, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 type OrderStatus = "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 
@@ -106,8 +106,8 @@ export function OrdersView() {
                                 key={s}
                                 onClick={() => setStatusFilter(s)}
                                 className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${statusFilter === s
-                                        ? "bg-primary text-primary-foreground border-primary"
-                                        : "border-border hover:border-primary/50 hover:bg-muted/50"
+                                    ? "bg-primary text-primary-foreground border-primary"
+                                    : "border-border hover:border-primary/50 hover:bg-muted/50"
                                     }`}
                             >
                                 {STATUS_LABELS[s]}
@@ -173,6 +173,43 @@ export function OrdersView() {
                                         className="border-t"
                                     >
                                         <div className="p-5 space-y-5">
+                                            {/* Order Status Timeline */}
+                                            <div className="space-y-3">
+                                                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Statut de la commande</p>
+                                                <div className="relative pl-4">
+                                                    <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-border"></div>
+                                                    {["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"].map((statusKey, idx) => {
+                                                        const statusCfg = STATUS_CONFIG[statusKey as OrderStatus];
+                                                        const StatusTimelineIcon = statusCfg.icon;
+                                                        const isActive =
+                                                            (order.status === statusKey) ||
+                                                            (order.status === "DELIVERED" && ["PENDING", "PROCESSING", "SHIPPED"].includes(statusKey)) ||
+                                                            (order.status === "SHIPPED" && ["PENDING", "PROCESSING"].includes(statusKey)) ||
+                                                            (order.status === "PROCESSING" && ["PENDING"].includes(statusKey));
+                                                        const isCurrent = order.status === statusKey;
+
+                                                        return (
+                                                            <div key={statusKey} className="relative mb-4 last:mb-0">
+                                                                <div className={`absolute -left-2.5 top-0.5 h-5 w-5 rounded-full flex items-center justify-center ${isActive ? statusCfg.bg : "bg-muted"} border ${isActive ? statusCfg.color : "text-muted-foreground"} ${isCurrent ? "border-2 border-primary" : "border-border"}`}>
+                                                                    <StatusTimelineIcon className="h-3 w-3" />
+                                                                </div>
+                                                                <p className={`ml-4 text-sm font-semibold ${isActive ? "text-foreground" : "text-muted-foreground"}`}>{statusCfg.label}</p>
+                                                                {/* You might add dates here if available in order data */}
+                                                                {/* <p className="ml-4 text-xs text-muted-foreground">Date here</p> */}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                    {order.status === "CANCELLED" && (
+                                                        <div className="relative mb-4 last:mb-0">
+                                                            <div className={`absolute -left-2.5 top-0.5 h-5 w-5 rounded-full flex items-center justify-center ${STATUS_CONFIG.CANCELLED.bg} border-2 border-red-500 text-red-600`}>
+                                                                <XCircle className="h-3 w-3" />
+                                                            </div>
+                                                            <p className="ml-4 text-sm font-semibold text-red-600">{STATUS_CONFIG.CANCELLED.label}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
                                             {/* Produits */}
                                             <div className="space-y-3">
                                                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Produits commandés</p>
@@ -181,7 +218,7 @@ export function OrdersView() {
                                                     return (
                                                         <div key={item.id} className="flex items-center gap-4 bg-muted/30 rounded-xl p-3">
                                                             <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border bg-slate-100 flex items-center justify-center">
-                                                                {image ? <img src={image} alt={item.product.name} className="w-full h-full object-cover" /> : <span className="text-2xl">💊</span>}
+                                                                {image ? <img loading="lazy" src={image} alt={item.product.name} className="w-full h-full object-cover" /> : <span className="text-2xl">💊</span>}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="text-xs font-bold text-primary">{item.product.brand}</p>

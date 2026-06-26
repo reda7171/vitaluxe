@@ -40,6 +40,12 @@ export default function NewProductPage() {
         setLoading(true);
         setError("");
         const fd = new FormData(e.currentTarget);
+        if (images.length === 0) {
+            setError("Veuillez ajouter au moins une image pour le produit.");
+            setLoading(false);
+            return;
+        }
+
         const data = {
             name: fd.get("name"),
             description: fd.get("description"),
@@ -130,7 +136,7 @@ export default function NewProductPage() {
                         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
                             <div className="flex items-center gap-2 mb-5">
                                 <ImagePlus size={16} className="text-[#2d6a4f]" />
-                                <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Images</h2>
+                                <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Images *</h2>
                             </div>
 
                             <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-[#2d6a4f] hover:bg-[#2d6a4f]/5 transition">
@@ -144,8 +150,11 @@ export default function NewProductPage() {
                                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 mt-4">
                                     {images.map((img, i) => (
                                         <div key={i} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-100 shadow-sm">
-                                            <img src={img} alt={`img-${i}`} className="object-cover w-full h-full" />
-                                            {i === 0 && (
+                                            <img 
+                                                src={img} 
+                                                alt={`Aperçu ${i}`} 
+                                                className="w-full h-full object-cover" 
+                                            />                                            {i === 0 && (
                                                 <div className="absolute top-1 left-1 bg-[#2d6a4f] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                                                     <Star size={8} /> Principale
                                                 </div>

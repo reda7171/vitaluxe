@@ -1,17 +1,44 @@
 version: '3.8'
 
 services:
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: vitaluxe-phpmyadmin
+    restart: always
+    ports:
+      - "8082:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: "REDAAZIZI71712"
+    depends_on:
+      - db
+
   db:
     image: mysql:8.0
-    container_name: vitaluxe-mysql
+    container_name: vitaluxe-mysql-vps
     restart: always
     environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "REDAAZIZI71712"
       MYSQL_DATABASE: vitaluxe
     ports:
       - "3306:3306"
     volumes:
-      - vitaluxe-mysql-data:/var/lib/mysql
+      - vitaluxe-db-data:/var/lib/mysql
+
+  app:
+    image: vitaluxe-app:latest
+    container_name: vitaluxe-app
+    restart: always
+    environment:
+      DATABASE_URL: mysql://root:REDAAZIZI71712@db:3306/vitaluxe
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://vitaluxe.ma}
+      AUTH_SECRET: ${AUTH_SECRET:-vitaluxe-secret-dev-2026}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-vitaluxe-secret-dev-2026}
+      PORT: 8080
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
 
 volumes:
-  vitaluxe-mysql-data:
+  vitaluxe-db-data:

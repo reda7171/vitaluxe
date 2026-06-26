@@ -14,7 +14,7 @@ const BLOG_POSTS: Record<string, any> = {
             role: "Dermatologue",
             avatar: "https://ui-avatars.com/api/?name=Sarah+Benali&background=103178&color=fff"
         },
-        image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=1200&auto=format&fit=crop",
+        image: "/blog/visage-routine.png",
         excerpt: "Découvrez comment adapter votre routine de soins quotidienne à votre type de peau pour des résultats visibles en 4 semaines. Nos dermatologues vous guident pas à pas.",
         content: `
             <h2>1. Pourquoi chaque type de peau nécessite une routine spécifique ?</h2>
@@ -27,7 +27,7 @@ const BLOG_POSTS: Record<string, any> = {
                 <li><strong>La protection (SPF)</strong> : Indispensable, même par temps nuageux !</li>
             </ul>
 
-            <img src="https://images.unsplash.com/photo-1615397323293-875b2258832c?q=80&w=800&auto=format&fit=crop" alt="Produits de soins alignés" />
+            <img loading="lazy" src="https://images.unsplash.com/photo-1615397323293-875b2258832c?q=80&w=800&auto=format&fit=crop" alt="Produits de soins alignés" />
 
             <h2>2. La routine pour les peaux grasses et à tendance acnéique</h2>
             <p>Contrôler l'excès de sébum sans agresser la peau est la clé. L'erreur la plus courante est de vouloir "décaper" la peau, ce qui entraîne une surproduction de sébum en réaction.</p>
@@ -57,7 +57,7 @@ const BLOG_POSTS: Record<string, any> = {
             role: "Pharmacien",
             avatar: "https://ui-avatars.com/api/?name=Amine+Tazi&background=103178&color=fff"
         },
-        image: "https://images.unsplash.com/photo-1550572017-edb799be0d36?q=80&w=800&auto=format&fit=crop",
+        image: "/blog/complements-guide.png",
         excerpt: "Notre pharmacien vous guide à travers les compléments essentiels : vitamines, minéraux, oméga-3. Ce qu'il faut vraiment prendre pour booster votre immunité.",
         content: `
             <h2>L'importance d'une supplémentation ciblée</h2>
@@ -83,7 +83,7 @@ const BLOG_POSTS: Record<string, any> = {
             role: "Dermatologue",
             avatar: "https://ui-avatars.com/api/?name=Sarah+Benali&background=103178&color=fff"
         },
-        image: "https://images.unsplash.com/photo-1526413232644-8a40f41ce931?q=80&w=800&auto=format&fit=crop",
+        image: "/blog/protection-solaire.png",
         excerpt: "Avec un ensoleillement exceptionnel, le Maroc exige une protection solaire adaptée. Nos experts sélectionnent les meilleurs écrans solaires SPF 50+.",
         content: `
              <h2>Le soleil marocain : ami et ennemi de votre peau</h2>
@@ -108,7 +108,7 @@ const BLOG_POSTS: Record<string, any> = {
             role: "Pharmacien",
             avatar: "https://ui-avatars.com/api/?name=Amine+Tazi&background=103178&color=fff"
         },
-        image: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800&auto=format&fit=crop",
+        image: "/blog/chute-cheveux.png",
         excerpt: "Stress, carences, déréglements hormonaux... On démêle les causes de la chute de cheveux et les traitements qui fonctionnent vraiment en parapharmacie.",
         content: `
             <h2>Chute réactionnelle vs Chute chronique</h2>
@@ -132,7 +132,7 @@ const BLOG_POSTS: Record<string, any> = {
             role: "Dermatologue",
             avatar: "https://ui-avatars.com/api/?name=Sarah+Benali&background=103178&color=fff"
         },
-        image: "https://images.unsplash.com/photo-1615397323293-875b2258832c?q=80&w=800&auto=format&fit=crop",
+        image: "/blog/hydratation-hiver.png",
         excerpt: "Les meilleures crèmes hydratantes, sérums et huiles pour réparer et nourrir la peau sèche et tiraillée pendant les mois les plus froids.",
         content: `
              <h2>Pourquoi notre peau tiraille-t-elle en hiver ?</h2>
@@ -152,7 +152,7 @@ const BLOG_POSTS: Record<string, any> = {
             role: "Pharmacien",
             avatar: "https://ui-avatars.com/api/?name=Amine+Tazi&background=103178&color=fff"
         },
-        image: "https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&auto=format&fit=crop",
+        image: "/blog/bebe-soins.png",
         excerpt: "Quels produits utiliser en toute sécurité pour la peau fragile de votre bébé ? Notre pharmacienne vous guide sur les soins doux, bio et naturels.",
         content: `
             <h2>Moins c'est mieux</h2>
@@ -200,7 +200,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-slate-500">
                         <div className="flex items-center gap-3">
-                            <img src={post.author.avatar} alt={post.author.name} className="w-10 h-10 rounded-full border border-slate-200" />
+                            <img loading="lazy" src={post.author.avatar} alt={post.author.name} className="w-10 h-10 rounded-full border border-slate-200" />
                             <div className="text-left">
                                 <p className="font-bold text-slate-900">{post.author.name}</p>
                                 <p className="text-xs">{post.author.role}</p>
@@ -216,7 +216,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
                 {/* Cover Image */}
                 <div className="w-full h-64 md:h-[450px] rounded-[2rem] overflow-hidden mb-16 shadow-lg border border-slate-100">
-                    <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                    <img loading="lazy" src={post.image} alt={post.title} className="w-full h-full object-cover" />
                 </div>
 
                 {/* Content & Sidebar */}

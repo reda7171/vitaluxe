@@ -8,10 +8,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     MapPin, Plus, Trash2, Edit2, Star, Check, Home, Building2, Briefcase, Loader2
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AccountLayout } from "@/components/account/account-layout";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { AccountLayout } from "./account-layout";
 
 type AddressType = "home" | "work" | "other";
 

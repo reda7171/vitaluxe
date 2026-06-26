@@ -2,77 +2,73 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Grid3X3, Star, ShoppingBag } from "lucide-react";
-import { ALL_PRODUCTS, CATEGORIES } from "@/lib/data/products";
-import { useCart } from "@/lib/context/cart-context";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-import { faFaceSmile, faSpa, faScissors, faCapsules, faSun, faBabyCarriage } from "@fortawesome/free-solid-svg-icons";
+import { ArrowRight, Grid3X3, Star, ShoppingBag, Smile, Flower2, Scissors, Pill, Sun, Baby } from "lucide-react";
+import { useCart } from "../../lib/context/cart-context";
 
-// ─── Category data enriched with count, image, color, description ─────────────
-const CATEGORY_DATA: Record<string, {
-    icon: IconDefinition;
-    description: string;
-    image: string;
+const CATEGORY_STYLES: Record<string, {
+    icon: any;
     gradient: string;
     textColor: string;
+    description: string;
 }> = {
     Visage: {
-        icon: faFaceSmile,
-        description: "Sérums, crèmes hydratantes, soins anti-âge, nettoyants et soins spécifiques pour le visage.",
-        image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop",
+        icon: Smile,
         gradient: "from-rose-500/90 to-pink-600/90",
         textColor: "text-rose-400",
+        description: "Prenez soin de votre visage avec nos sérums et crèmes.",
     },
     Corps: {
-        icon: faSpa,
-        description: "Laits corporels, huiles de soin, gels douche, crèmes amincissantes et produits de bien-être.",
-        image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800&auto=format&fit=crop",
+        icon: Flower2,
         gradient: "from-amber-500/90 to-orange-600/90",
         textColor: "text-amber-400",
+        description: "Hydratation et bien-être pour tout votre corps.",
     },
     Cheveux: {
-        icon: faScissors,
-        description: "Shampoings, après-shampoings, masques capillaires et soins pour tous types de cheveux.",
-        image: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800&auto=format&fit=crop",
+        icon: Scissors,
         gradient: "from-purple-500/90 to-violet-600/90",
         textColor: "text-purple-400",
+        description: "Soin et brillance pour tous types de cheveux.",
     },
     Compléments: {
-        icon: faCapsules,
-        description: "Vitamines, minéraux, probiotiques et compléments alimentaires pour votre santé au quotidien.",
-        image: "https://images.unsplash.com/photo-1550572017-edb799be0d36?q=80&w=800&auto=format&fit=crop",
+        icon: Pill,
         gradient: "from-emerald-500/90 to-teal-600/90",
         textColor: "text-emerald-400",
+        description: "Vitamines et minéraux pour votre santé.",
     },
     Solaire: {
-        icon: faSun,
-        description: "Crèmes solaires SPF 30/50+, après-soleil, autobronzants et protections pour enfants.",
-        image: "https://images.unsplash.com/photo-1556228720-1c2a4624dc1c?q=80&w=800&auto=format&fit=crop",
+        icon: Sun,
         gradient: "from-yellow-500/90 to-orange-500/90",
         textColor: "text-yellow-400",
+        description: "Protection solaire maximale pour toute la famille.",
     },
     Bébé: {
-        icon: faBabyCarriage,
-        description: "Soins doux pour les peaux sensibles des nourrissons : crèmes, bains moussants et lingettes.",
-        image: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?q=80&w=800&auto=format&fit=crop",
+        icon: Baby,
         gradient: "from-sky-400/90 to-blue-500/90",
         textColor: "text-sky-400",
+        description: "Soins doux pour la peau sensible des tout-petits.",
     },
 };
 
-const FEATURED_PRODUCTS_BY_CATEGORY = (cat: string) =>
-    ALL_PRODUCTS.filter((p) => p.category === cat).slice(0, 3);
+const DEFAULT_STYLE = {
+    icon: ShoppingBag,
+    gradient: "from-[#103178]/90 to-blue-600/90",
+    textColor: "text-[#103178]",
+    description: "Découvrez notre sélection de produits.",
+};
 
-export default function CategoriesPageClient() {
+export default function CategoriesPageClient({ initialCategories }: { initialCategories: any[] }) {
     const { addItem } = useCart();
 
-    const categoriesWithCount = CATEGORIES.map((cat) => ({
-        name: cat,
-        count: ALL_PRODUCTS.filter((p) => p.category === cat).length,
-        ...CATEGORY_DATA[cat],
-        products: FEATURED_PRODUCTS_BY_CATEGORY(cat),
-    }));
+    if (initialCategories.length === 0) {
+        return (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center space-y-4">
+                <ShoppingBag className="h-16 w-16 text-slate-200" />
+                <h1 className="text-2xl font-bold text-slate-900">Aucune catégorie trouvée</h1>
+                <p className="text-slate-500 max-w-sm">Désolé, nous n'avons pas encore de catégories à afficher. Revenez bientôt !</p>
+                <Link href="/" className="text-primary font-bold hover:underline">Retour à l'accueil</Link>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen">
@@ -107,8 +103,8 @@ export default function CategoriesPageClient() {
                         className="flex flex-wrap gap-4 mt-8"
                     >
                         {[
-                            { label: "Catégories", value: CATEGORIES.length },
-                            { label: "Produits en ligne", value: ALL_PRODUCTS.length + "+" },
+                            { label: "Catégories", value: initialCategories.length },
+                            { label: "Produits en ligne", value: initialCategories.reduce((acc, c) => acc + c._count.products, 0) },
                             { label: "Marques", value: "50+" },
                         ].map(({ label, value }) => (
                             <div key={label} className="bg-background/80 backdrop-blur border rounded-xl px-5 py-2.5 flex items-center gap-3">
@@ -122,9 +118,13 @@ export default function CategoriesPageClient() {
 
             {/* ── Category sections ────────────────────────────────────────────────── */}
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
-                {categoriesWithCount.map((cat, i) => (
+                {initialCategories.map((cat, i) => {
+                    const style = CATEGORY_STYLES[cat.name] || DEFAULT_STYLE;
+                    const Icon = style.icon;
+                    const count = cat._count?.products || 0;
+                    return (
                     <motion.section
-                        key={cat.name}
+                        key={cat.id}
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-80px" }}
@@ -133,14 +133,14 @@ export default function CategoriesPageClient() {
                         {/* Section header */}
                         <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 ${i % 2 === 0 ? "" : "md:flex-row-reverse"}`}>
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
-                                    <FontAwesomeIcon icon={cat.icon} className="text-2xl text-foreground" />
+                                <div className="w-12 h-12 rounded-xl bg-[#103178]/5 flex items-center justify-center">
+                                    <Icon className="h-6 w-6 text-[#103178]" />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-extrabold tracking-tight">{cat.name}</h2>
-                                    <p className="text-muted-foreground text-sm mt-0.5 max-w-md">{cat.description}</p>
-                                    <span className={`text-sm font-bold mt-1 block ${cat.textColor}`}>
-                                        {cat.count > 0 ? `${cat.count} produit${cat.count > 1 ? "s" : ""}` : "Bientôt disponible"}
+                                    <p className="text-muted-foreground text-sm mt-0.5 max-w-md">{style.description}</p>
+                                    <span className={`text-sm font-bold mt-1 block ${style.textColor}`}>
+                                        {count > 0 ? `${count} produit${count > 1 ? "s" : ""}` : "Bientôt disponible"}
                                     </span>
                                 </div>
                             </div>
@@ -159,24 +159,30 @@ export default function CategoriesPageClient() {
                                 href={`/shop?category=${cat.name}`}
                                 className="relative lg:col-span-1 group overflow-hidden min-h-[220px]"
                             >
-                                <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                                <div className={`absolute inset-0 bg-gradient-to-t ${cat.gradient}`} />
+                                <img 
+                                    src={cat.image && cat.image.trim() !== "" ? cat.image : "/placeholder-category.jpg"} 
+                                    alt={cat.name} 
+                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                                />                                <div className={`absolute inset-0 bg-gradient-to-t ${style.gradient}`} />
                                 <div className="absolute inset-0 flex flex-col justify-end p-6">
                                     <p className="text-white font-extrabold text-xl">{cat.name}</p>
-                                    <p className="text-white/80 text-sm">{cat.count} produits →</p>
+                                    <p className="text-white/80 text-sm">{count} produits →</p>
                                 </div>
                             </Link>
 
                             {/* Product mini-cards */}
                             <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 divide-x divide-y sm:divide-y-0 divide-border bg-card">
-                                {cat.products.length > 0 ? cat.products.map((p) => {
+                                {cat.products.length > 0 ? cat.products.map((p: any) => {
                                     const price = p.salePrice ?? p.price;
                                     return (
                                         <div key={p.id} className="flex flex-col p-5 group hover:bg-muted/40 transition-colors">
-                                            <Link href={`/product/${p.id}`} className="block">
+                                            <Link href={`/product/${p.slug}`} className="block">
                                                 <div className="aspect-square w-full mb-4 rounded-xl overflow-hidden bg-muted/20">
-                                                    <img src={p.image} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                                </div>
+                                                <img 
+                                                    src={p.image} 
+                                                    alt={p.name} 
+                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                                />                                                </div>
                                                 <span className="text-xs font-bold text-primary uppercase tracking-wider">{p.brand}</span>
                                                 <h3 className="text-sm font-semibold mt-1 line-clamp-2 leading-snug group-hover:text-primary transition-colors">{p.name}</h3>
                                             </Link>
@@ -209,8 +215,10 @@ export default function CategoriesPageClient() {
                             </div>
                         </div>
                     </motion.section>
-                ))}
+                    );
+                })}
             </div>
+            
         </div>
     );
 }

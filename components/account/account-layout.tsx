@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { AccountSidebar } from "@/components/account/account-sidebar";
+import { AccountSidebar } from "./account-sidebar";
 import { motion } from "framer-motion";
 
 export function AccountLayout({ children }: { children: React.ReactNode }) {

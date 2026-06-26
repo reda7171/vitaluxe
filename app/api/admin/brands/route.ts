@@ -1,7 +1,11 @@
-import prisma from "@/lib/prisma";
+import prisma from "../../../../lib/prisma";
 import { NextResponse } from "next/server";
+import { auth } from "../../../../lib/auth";
 
 export async function GET() {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+
     const brands = await prisma.brand.findMany({
         orderBy: { name: "asc" },
     });
@@ -10,6 +14,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
+        const session = await auth();
+        if (session?.user?.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+
         const body = await req.json();
         const { name, image } = body;
 

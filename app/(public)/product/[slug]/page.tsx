@@ -1,8 +1,8 @@
-import prisma from "@/lib/prisma";
+import prisma from "../../../../lib/prisma";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ProductDetailView } from "@/components/product/product-detail-view";
-import { ProductReviews } from "@/components/product/product-reviews";
+import { ProductDetailView } from "../../../../components/product/product-detail-view";
+import { ProductReviews } from "../../../../components/product/product-reviews";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!product) return { title: "Produit introuvable" };
     return {
         title: `${product.name} | Vitaluxe`,
-        description: product.description.slice(0, 155),
+        description: product.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155),
     };
 }
 
@@ -25,11 +25,27 @@ export default async function ProductSlugPage({ params }: Props) {
     });
     if (!product) notFound();
 
+    const brandInfo = product.brand 
+        ? await prisma.brand.findUnique({ where: { name: product.brand } })
+        : null;
+
     const related = await prisma.product.findMany({
         where: { categoryId: product.categoryId, NOT: { id: product.id } },
         take: 4,
         include: { category: { select: { name: true } } },
     });
+
+    const parseImages = (imgStr: any): string[] => {
+        if (!imgStr) return [];
+        if (Array.isArray(imgStr)) return imgStr;
+        if (typeof imgStr !== "string") return [];
+        try {
+            const parsed = JSON.parse(imgStr);
+            return Array.isArray(parsed) ? parsed : [imgStr];
+        } catch {
+            return [imgStr];
+        }
+    };
 
     const serialized = {
         id: product.id,
@@ -39,8 +55,9 @@ export default async function ProductSlugPage({ params }: Props) {
         price: product.price,
         salePrice: product.salePrice ?? undefined,
         stock: product.stock,
-        images: (product.images as string[]) ?? [],
+        images: parseImages(product.images),
         brand: product.brand ?? "",
+        brandImage: brandInfo?.image || null,
         category: product.category.name,
     };
 
@@ -50,7 +67,7 @@ export default async function ProductSlugPage({ params }: Props) {
         slug: p.slug,
         price: p.price,
         salePrice: p.salePrice ?? undefined,
-        images: (p.images as string[]) ?? [],
+        images: parseImages(p.images),
         brand: p.brand ?? "",
         category: p.category.name,
     }));

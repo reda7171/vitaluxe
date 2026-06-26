@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
     LayoutDashboard, Package, ShoppingCart, MessageSquare, Mail,
     Users, Settings, Tag, LogOut, ChevronRight, BarChart2, Percent, FileText, Star, X
@@ -16,6 +17,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
     const [pendingCount, setPendingCount] = useState(0);
     const [unreadMessages, setUnreadMessages] = useState(0);
     const [pendingPrescriptions, setPendingPrescriptions] = useState(0);
+    const [abandonedCartsCount, setAbandonedCartsCount] = useState(0);
 
     useEffect(() => {
         fetch("/api/admin/notifications")
@@ -24,6 +26,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
                 setPendingCount(d.count ?? 0);
                 setUnreadMessages(d.messagesCount ?? 0);
                 setPendingPrescriptions(d.prescriptionsCount ?? 0);
+                setAbandonedCartsCount(d.abandonedCartsCount ?? 0);
             })
             .catch(() => { });
     }, [pathname]);
@@ -44,17 +47,24 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         { href: "/admin/reviews", label: "Avis Clients", icon: Star },
         { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
         { href: "/admin/prescriptions", label: "Ordonnances", icon: FileText, badge: pendingPrescriptions },
+        { href: "/admin/abandoned-carts", label: "Paniers Abandonnés", icon: ShoppingCart, badge: abandonedCartsCount },
     ];
 
     return (
         <aside className={`w-64 bg-[#0f172a] text-white flex flex-col h-full shrink-0 shadow-xl fixed xl:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full xl:translate-x-0"}`}>
             {/* Logo */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 shrink-0">
-                <Link href="/admin" className="flex items-center gap-2" onClick={onClose}>
-                    <div className="w-8 h-8 rounded-lg bg-[#2d6a4f] flex items-center justify-center">
-                        <span className="text-white font-extrabold text-sm">V</span>
+                <Link href="/" className="flex items-center" onClick={onClose}>
+                    <div className="bg-white/90 p-1.5 rounded-lg">
+                        <Image 
+                            src="/VITALUXE.png" 
+                            alt="Vitaluxe Logo" 
+                            width={140} 
+                            height={35} 
+                            className="h-7 w-auto object-contain" 
+                            priority 
+                        />
                     </div>
-                    <span className="font-extrabold text-lg tracking-tight">Vitaluxe</span>
                 </Link>
                 <button className="xl:hidden p-2 -mr-2 text-slate-400 hover:text-white rounded-lg transition-colors" onClick={onClose}>
                     <X size={20} />

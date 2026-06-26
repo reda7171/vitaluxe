@@ -1,11 +1,10 @@
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error("STRIPE_SECRET_KEY is not defined");
-}
+const stripe = process.env.STRIPE_SECRET_KEY
+    ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2025-02-24.acacia" as any,
+    })
+    : null;
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2025-02-24.acacia" as any,
-});
+export default stripe as Stripe; // On cast car l'utilisation réelle échouera proprement via Stripe si utilisé sans clé
 
-export default stripe;

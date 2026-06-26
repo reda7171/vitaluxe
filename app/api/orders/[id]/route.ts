@@ -1,6 +1,7 @@
-import prisma from "@/lib/prisma";
+import prisma from "../../../../lib/prisma";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "../../../../lib/auth";
+import { sendOrderStatusEmail } from "../../../../lib/email";
 
 // PUT /api/orders/[id] — update status or archive
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -15,7 +16,26 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (status) data.status = status;
     if (archived !== undefined) data.archived = archived;
 
-    const order = await prisma.order.update({ where: { id }, data });
+    const order = await prisma.order.update({
+        where: { id },
+        data,
+        include: { user: { select: { email: true, name: true } } }
+    });
+
+    // Envoi de l'email automatique si le statut a changé
+    if (status) {
+        try {
+            await sendOrderStatusEmail({
+                to: order.user.email,
+                name: order.user.name || "Client",
+                orderId: order.id,
+                status: status as string
+            });
+        } catch (e) {
+            console.error("Erreur envoi email statut:", e);
+        }
+    }
+
     return NextResponse.json(order);
 }
 
@@ -24,8 +44,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     const order = await prisma.order.findUnique({
         where: { id },
         include: {
-            user: { select: { name: true, email: true } },
-            orderItems: { include: { product: { select: { name: true } } } },
+            user: { select: { name: true, email: true, phone: true, image: true, addresses: true } },
+            orderItems: { include: { product: { select: { name: true, images: true, brand: true } } } },
         },
     });
     if (!order) return NextResponse.json({ error: "Introuvable" }, { status: 404 });

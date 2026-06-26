@@ -1,29 +1,44 @@
+"use client";
+
 import Link from 'next/link';
-import { Facebook, Instagram, Twitter, MapPin, Phone, Mail } from 'lucide-react';
+import { Facebook, Instagram, MapPin, Phone, Mail } from 'lucide-react';
 import Image from 'next/image';
+import { useSiteLayout } from "../../lib/hooks/use-site-layout";
 
 export function Footer() {
+    const { settings } = useSiteLayout();
+    
+    const description = settings.footer?.description || "Votre parapharmacie en ligne de confiance pour tous vos besoins en santé, beauté et bien-être.";
+    const fbLink = settings.footer?.facebookUrl || "https://www.facebook.com/vitaluxema";
+    const igLink = settings.footer?.instagramUrl || "https://www.instagram.com/vitaluxema";
+    const tkLink = settings.footer?.tiktokUrl || "https://www.tiktok.com/@vitaluxema";
+    const address = settings.footer?.address || "123 Avenue de la Beauté, Casablanca, Maroc";
+    const phone = settings.footer?.phone || "+212 5 12 34 56 78";
+    const email = settings.footer?.email || "contact@vitaluxe.ma";
+
     return (
         <footer className="bg-white border-t mt-auto">
             <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
                     <div className="space-y-4">
-                        <Image src="/VITALUXE.png" alt="Vitaluxe Logo" width={150} height={40} className="h-10 w-auto object-contain mb-2" />
+                        <Image src="/VITALUXE.png" alt="Vitaluxe Logo" width={150} height={40} className="h-10 w-auto object-contain mb-2 mx-auto md:mx-0" />
                         <p className="text-sm text-muted-foreground">
-                            Votre parapharmacie en ligne de confiance pour tous vos besoins en santé, beauté et bien-être.
+                            {description}
                         </p>
-                        <div className="flex space-x-4">
-                            <Link href="#" className="text-muted-foreground hover:text-primary">
+                        <div className="flex space-x-4 justify-center md:justify-start">
+                            <Link href={fbLink} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
                                 <span className="sr-only">Facebook</span>
                                 <Facebook className="h-5 w-5" />
                             </Link>
-                            <Link href="#" className="text-muted-foreground hover:text-primary">
+                            <Link href={igLink} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
                                 <span className="sr-only">Instagram</span>
                                 <Instagram className="h-5 w-5" />
                             </Link>
-                            <Link href="#" className="text-muted-foreground hover:text-primary">
-                                <span className="sr-only">Twitter</span>
-                                <Twitter className="h-5 w-5" />
+                            <Link href={tkLink} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                                <span className="sr-only">TikTok</span>
+                                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
+                                </svg>
                             </Link>
                         </div>
                     </div>
@@ -50,23 +65,23 @@ export function Footer() {
                     <div>
                         <h3 className="text-sm font-semibold tracking-wider uppercase mb-4">Contact</h3>
                         <ul className="space-y-3 text-sm text-muted-foreground">
-                            <li className="flex items-start">
+                            <li className="flex items-start justify-center md:justify-start">
                                 <MapPin className="h-5 w-5 text-primary mr-2 shrink-0" />
-                                <span>123 Avenue de la Beauté, Casablanca, Maroc</span>
+                                <span>{address}</span>
                             </li>
-                            <li className="flex items-center">
+                            <li className="flex items-center justify-center md:justify-start">
                                 <Phone className="h-5 w-5 text-primary mr-2 shrink-0" />
-                                <span>+212 5 12 34 56 78</span>
+                                <span>{phone}</span>
                             </li>
-                            <li className="flex items-center">
+                            <li className="flex items-center justify-center md:justify-start">
                                 <Mail className="h-5 w-5 text-primary mr-2 shrink-0" />
-                                <span>contact@vitaluxe.ma</span>
+                                <span>{email}</span>
                             </li>
                         </ul>
                     </div>
                 </div>
 
-                <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
+                <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground text-center md:text-left gap-4 md:gap-0">
                     <p>&copy; {new Date().getFullYear()} Vitaluxe. Tous droits réservés.</p>
                     <div className="flex items-center space-x-4 mt-4 md:mt-0">
                         <span>Paiement 100% sécurisé</span>

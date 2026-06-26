@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { X, Tag, Sparkles, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 
 const PROMO_CODE = "VITALUXE20";
 const STORAGE_KEY = "vx_promo_dismissed";

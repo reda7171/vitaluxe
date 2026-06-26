@@ -2,31 +2,26 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { GlobalSearch } from "@/components/layout/GlobalSearch";
+import { GlobalSearch } from "./GlobalSearch";
 import { useSession, signOut } from "next-auth/react";
-import { useCart } from "@/lib/context/cart-context";
-import { useWishlist } from "@/lib/context/wishlist-context";
+import { useCart } from "../../lib/context/cart-context";
+import { useWishlist } from "../../lib/context/wishlist-context";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     ShoppingCart, User, Heart, LogOut, LayoutDashboard,
     Package, X, ChevronDown, Truck, Phone, Menu,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import Image from "next/image";
+import { useSiteLayout } from "../../lib/hooks/use-site-layout";
 
 /* ─── Category definitions ────────────────────────────────────────── */
-const CATEGORIES = [
-    { label: "VISAGE", href: "/shop?cat=Visage" },
-    { label: "CORPS", href: "/shop?cat=Corps" },
-    { label: "CHEVEUX", href: "/shop?cat=Cheveux" },
-    { label: "BÉBÉS", href: "/shop?cat=Bébé" },
-    { label: "HOMME", href: "/shop?cat=Homme" },
-    { label: "HYGIÈNE", href: "/shop?cat=Hygiène" },
-    { label: "SOLAIRES", href: "/shop?cat=Solaire" },
-    { label: "COMPLÉMENTS", href: "/shop?cat=Compléments" },
-    { label: "ÉPICERIE FINE", href: "/shop?cat=Épicerie" },
-    { label: "SPORT", href: "/shop?cat=Sport" },
+const STATIC_CATEGORIES = [
+    { label: "VISAGE", href: "/shop?category=Visage" },
+    { label: "CORPS", href: "/shop?category=Corps" },
+    { label: "CHEVEUX", href: "/shop?category=Cheveux" },
+    { label: "COMPLÉMENTS", href: "/shop?category=Compléments" },
     { label: "PROMOTIONS", href: "/shop?badge=Promo", highlight: true },
 ];
 
@@ -51,6 +46,12 @@ export function Header() {
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    const { settings } = useSiteLayout();
+    
+    const topBannerText = settings.header?.topBannerText || "Livraison gratuite Rabat à partir de 350 Dh — Autres villes 600 Dh";
+    const phoneLabel = settings.header?.phone || "06 66 69 54 86";
+    const phoneLink = settings.header?.phoneLink || "tel:+212512345678";
+
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
     useEffect(() => {
@@ -68,7 +69,16 @@ export function Header() {
     const initials = session?.user?.name
         ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
+    const dynamicCategories = settings.categories && settings.categories.length > 0
+        ? settings.categories.map((c: any) => ({ label: c.name.toUpperCase(), href: `/shop?category=${c.slug}` }))
+        : [];
+    
+    // Add Promotions at the end if not present
+    if (dynamicCategories.length > 0 && !dynamicCategories.find(c => c.label === "PROMOTIONS")) {
+        dynamicCategories.push({ label: "PROMOTIONS", href: "/shop?badge=Promo", highlight: true } as any);
+    }
 
+    const categoriesToDisplay = dynamicCategories.length > 0 ? dynamicCategories : STATIC_CATEGORIES;
 
     return (
         <header className="sticky top-0 z-40 w-full shadow-sm">
@@ -82,9 +92,9 @@ export function Header() {
                     <div className="flex items-center gap-2 font-semibold tracking-wide uppercase shrink-0">
                         <Truck className="h-3.5 w-3.5 shrink-0" />
                         <span className="hidden sm:block">
-                            Livraison gratuite Rabat à partir de 350 Dh &mdash; Autres villes 600 Dh
+                            {topBannerText}
                         </span>
-                        <span className="sm:hidden">Livraison gratuite dès 350 Dh</span>
+                        <span className="sm:hidden">{topBannerText.length > 30 ? topBannerText.slice(0, 30) + "..." : topBannerText}</span>
                     </div>
 
                     {/* Top nav links */}
@@ -122,16 +132,16 @@ export function Header() {
                     <div className="flex items-center gap-1 shrink-0 ml-auto">
                         {/* Phone (desktop only) */}
                         <a
-                            href="tel:+212512345678"
+                            href={phoneLink}
                             className="hidden xl:flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[#2d6a4f] transition-colors px-3"
                         >
                             <Phone className="h-4 w-4 text-[#2d6a4f]" />
-                            06 66 69 54 86
+                            {phoneLabel}
                         </a>
 
                         {/* User / Account */}
                         <div className="relative">
-                            {status === "loading" ? (
+                            {!mounted || status === "loading" ? (
                                 <div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
                             ) : session?.user ? (
                                 <>
@@ -143,7 +153,15 @@ export function Header() {
                                     >
                                         <div className="h-8 w-8 rounded-full bg-[#2d6a4f] text-white flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden">
                                             {avatarUrl ? (
-                                                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                                <img
+                                                    src={avatarUrl}
+                                                    alt="Avatar"
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                        setAvatarUrl(null);
+                                                    }}
+                                                />
                                             ) : (
                                                 initials ?? "U"
                                             )}
@@ -275,11 +293,11 @@ export function Header() {
             <div className="hidden md:block bg-background border-b">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <nav className="flex items-center justify-between overflow-x-auto scrollbar-none" aria-label="Catégories">
-                        {CATEGORIES.map(({ label, href, highlight }) => {
+                        {categoriesToDisplay.map(({ label, href, highlight }: any) => {
                             const urlParams = new URLSearchParams(href.split('?')[1] || "");
-                            const categoryVal = urlParams.get('cat');
+                            const categoryVal = urlParams.get('category');
                             const isActive = categoryVal
-                                ? searchParams?.get('cat') === categoryVal
+                                ? searchParams?.get('category') === categoryVal
                                 : pathname.startsWith(href.split("?")[0]) && (pathname !== "/" || href === "/");
                             return (
                                 <Link
@@ -321,7 +339,7 @@ export function Header() {
                             <GlobalSearch />
                             {/* Mobile categories */}
                             <div className="grid grid-cols-3 gap-2">
-                                {CATEGORIES.map(({ label, href, highlight }) => (
+                                {categoriesToDisplay.map(({ label, href, highlight }: any) => (
                                     <Link
                                         key={label}
                                         href={href}

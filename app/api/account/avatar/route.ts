@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { auth } from "../../../../lib/auth";
+import prisma from "../../../../lib/prisma";
+import * as fs from "fs/promises";
 import { writeFile } from "fs/promises";
 import path from "path";
 
@@ -25,10 +26,31 @@ export async function POST(req: Request) {
 
         const ext = file.name.split(".").pop();
         const filename = `avatar-${session.user.id}.${ext}`;
-        const uploadDir = path.join(process.cwd(), "public", "avatars");
+        
+        // On essaie d'écrire dans le dossier public racine ET dans le dossier public du standalone s'il existe
+        const rootPublicDir = path.join(process.cwd(), "public", "avatars");
+        const standalonePublicDir = path.join(process.cwd(), ".next", "standalone", "public", "avatars");
+        
+        const uploadDirs = [rootPublicDir];
+        // Si on est déjà dans le standalone, on remonte pour trouver la racine ou on cherche localement
+        if (process.cwd().includes("standalone")) {
+            uploadDirs.push(path.join(process.cwd(), "public", "avatars"));
+        } else {
+            uploadDirs.push(standalonePublicDir);
+        }
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        await writeFile(path.join(uploadDir, filename), buffer);
+        
+        for (const dir of uploadDirs) {
+            try {
+                await fs.mkdir(dir, { recursive: true });
+                await writeFile(path.join(dir, filename), buffer);
+                console.log(`Avatar saved to: ${dir}`);
+            } catch (e) {
+                // On ignore si un des dossiers n'est pas accessible
+                console.warn(`Could not write to ${dir}:`, e);
+            }
+        }
 
         const avatarUrl = `/avatars/${filename}`;
 
@@ -39,7 +61,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ avatarUrl });
     } catch (error) {
-        console.error(error);
+        console.error("Avatar upload error:", error);
         return NextResponse.json({ error: "Erreur upload" }, { status: 500 });
     }
 }

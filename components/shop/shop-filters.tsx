@@ -2,9 +2,9 @@
 
 import { useCallback, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { CATEGORIES, BRANDS, ALL_PRODUCTS } from "@/lib/data/products";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { CATEGORIES, BRANDS, ALL_PRODUCTS } from "../../lib/data/products";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
 import {
     X, SlidersHorizontal, ChevronDown, ChevronUp,
     Tag, Layers, DollarSign, Package2, Star

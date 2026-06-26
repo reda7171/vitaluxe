@@ -3,7 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+} from "../ui/select";
 import { LayoutGrid, List, ArrowUpDown } from "lucide-react";
 
 const SORT_OPTIONS = [

@@ -9,7 +9,7 @@ import {
     useElements,
 } from "@stripe/react-stripe-js";
 import { Loader2, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 
 const stripePromise = loadStripe(
     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!

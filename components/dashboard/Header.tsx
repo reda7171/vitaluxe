@@ -1,11 +1,47 @@
 "use client";
 
-import { Bell, Search, Store, Menu } from "lucide-react";
+import { Bell, Search, Store, Menu, FileText, ShoppingCart, MessageSquare, AlertTriangle, Star } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useState, useEffect, useRef } from "react";
 
 export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     const { data: session } = useSession();
+    const [notifications, setNotifications] = useState<any>(null);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const fetchNotifications = () => {
+            if (session?.user && (session.user as any).role === "ADMIN") {
+                fetch("/api/admin/notifications")
+                    .then(r => r.json())
+                    .then(setNotifications)
+                    .catch(() => { });
+            }
+        };
+
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
+        return () => clearInterval(interval);
+    }, [session]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowNotifications(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const totalNotifications = notifications ?
+        (notifications.count || 0) +
+        (notifications.prescriptionsCount || 0) +
+        (notifications.reviewsCount || 0) +
+        (notifications.messagesCount || 0) +
+        (notifications.lowStockCount || 0) : 0;
 
     return (
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 xl:px-6 shadow-sm shrink-0 gap-4">
@@ -36,10 +72,91 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                 </Link>
 
                 {/* Notifications */}
-                <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors shrink-0">
-                    <Bell size={18} />
-                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
-                </button>
+                <div className="relative" ref={dropdownRef}>
+                    <button
+                        onClick={() => setShowNotifications(!showNotifications)}
+                        className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors shrink-0"
+                    >
+                        <Bell size={18} />
+                        {totalNotifications > 0 && (
+                            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
+                        )}
+                    </button>
+
+                    {showNotifications && (
+                        <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                                <h3 className="font-bold text-slate-800 text-sm">Notifications</h3>
+                                {totalNotifications > 0 && (
+                                    <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full">{totalNotifications}</span>
+                                )}
+                            </div>
+                            <div className="divide-y divide-slate-50 max-h-80 overflow-y-auto">
+                                {totalNotifications === 0 ? (
+                                    <p className="p-4 text-center text-xs text-slate-400">Aucune nouvelle notification.</p>
+                                ) : (
+                                    <>
+                                        {notifications?.count > 0 && (
+                                            <Link href="/admin/orders" onClick={() => setShowNotifications(false)} className="flex items-start gap-3 p-4 hover:bg-slate-50 transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                                                    <ShoppingCart className="h-4 w-4 text-blue-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-800">Nouvelle(s) commande(s)</p>
+                                                    <p className="text-xs text-slate-500">{notifications.count} commande(s) en attente.</p>
+                                                </div>
+                                            </Link>
+                                        )}
+                                        {notifications?.prescriptionsCount > 0 && (
+                                            <Link href="/admin/prescriptions" onClick={() => setShowNotifications(false)} className="flex items-start gap-3 p-4 hover:bg-slate-50 transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                                                    <FileText className="h-4 w-4 text-emerald-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-800">Nouvelle(s) ordonnance(s)</p>
+                                                    <p className="text-xs text-slate-500">{notifications.prescriptionsCount} ordonnance(s) reçue(s).</p>
+                                                </div>
+                                            </Link>
+                                        )}
+                                        {notifications?.messagesCount > 0 && (
+                                            <Link href="/admin/messages" onClick={() => setShowNotifications(false)} className="flex items-start gap-3 p-4 hover:bg-slate-50 transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center shrink-0">
+                                                    <MessageSquare className="h-4 w-4 text-orange-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-800">Nouveau(x) message(s)</p>
+                                                    <p className="text-xs text-slate-500">{notifications.messagesCount} message(s) non lu(s).</p>
+                                                </div>
+                                            </Link>
+                                        )}
+                                        {notifications?.reviewsCount > 0 && (
+                                            <Link href="/admin/reviews" onClick={() => setShowNotifications(false)} className="flex items-start gap-3 p-4 hover:bg-slate-50 transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                                                    <Star className="h-4 w-4 text-amber-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-800">Avis en attente</p>
+                                                    <p className="text-xs text-slate-500">{notifications.reviewsCount} avis à valider.</p>
+                                                </div>
+                                            </Link>
+                                        )}
+                                        {notifications?.lowStockCount > 0 && (
+                                            <Link href="/admin/products" onClick={() => setShowNotifications(false)} className="flex items-start gap-3 p-4 hover:bg-slate-50 transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                                                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-800">Alertes de stock</p>
+                                                    <p className="text-xs text-slate-500">{notifications.lowStockCount} produit(s) en stock critique (&#60;10).</p>
+                                                </div>
+                                            </Link>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 {/* Avatar */}
                 <div className="flex items-center gap-2 pl-2 border-l border-slate-200">

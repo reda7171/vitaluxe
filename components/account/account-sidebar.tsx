@@ -53,7 +53,11 @@ export function AccountSidebar() {
                 <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-extrabold shrink-0 overflow-hidden">
                         {avatarUrl ? (
-                            <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                            <img 
+                                src={avatarUrl} 
+                                alt={session?.user?.name ?? "User"} 
+                                className="w-full h-full object-cover" 
+                            />
                         ) : (
                             initials
                         )}

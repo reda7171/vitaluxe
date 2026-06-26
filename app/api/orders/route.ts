@@ -1,7 +1,7 @@
-import prisma from "@/lib/prisma";
+import prisma from "../../../lib/prisma";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { sendOrderConfirmationEmail } from "@/lib/email";
+import { auth } from "../../../lib/auth";
+import { sendOrderConfirmationEmail } from "../../../lib/email";
 
 export async function POST(req: Request) {
     try {
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
 export async function GET() {
     const orders = await prisma.order.findMany({
         include: {
-            user: { select: { name: true, email: true } },
+            user: { select: { name: true, email: true, image: true } },
             orderItems: { include: { product: { select: { name: true } } } },
         },
         orderBy: { createdAt: "desc" },

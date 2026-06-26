@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Plus, Trash2, Eye, EyeOff, Loader2, Image as ImageIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "../../../../components/ui/button";
+import { Input } from "../../../../components/ui/input";
+import { Label } from "../../../../components/ui/label";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../../../components/ui/dialog";
 
 interface Banner {
     id: string;
@@ -133,8 +133,13 @@ export default function AdminBannersPage() {
                             <tr key={banner.id} className="hover:bg-slate-50/50 transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-4">
-                                        <img src={banner.imageUrl} alt={banner.title} className="w-24 h-12 object-cover rounded-lg border shadow-sm" />
-                                        <div>
+                                        <div className="w-24 h-12 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                                            <img 
+                                                src={banner.imageUrl} 
+                                                alt={banner.title} 
+                                                className="w-full h-full object-cover" 
+                                            />
+                                        </div>                                        <div>
                                             <p className="font-bold text-slate-800 text-sm">{banner.title}</p>
                                             {banner.subtitle && <p className="text-xs text-slate-500">{banner.subtitle}</p>}
                                         </div>
@@ -184,8 +189,11 @@ export default function AdminBannersPage() {
                             <Label>Image de bannière (Paysage, HD)</Label>
                             <label className="flex flex-col flex-1 items-center justify-center border-2 border-dashed border-slate-300 rounded-xl p-6 cursor-pointer hover:bg-slate-50 transition-colors">
                                 {imageUrl ? (
-                                    <img src={imageUrl} alt="Aperçu" className="max-h-32 object-contain rounded-lg shadow-sm" />
-                                ) : (
+                                    <img 
+                                        src={imageUrl} 
+                                        alt="Aperçu" 
+                                        className="h-32 w-full object-cover rounded-lg" 
+                                    />                                ) : (
                                     <div className="text-center">
                                         <ImageIcon className="h-8 w-8 text-slate-400 mx-auto mb-2" />
                                         <span className="text-xs text-slate-500 font-medium bg-[#103178]/10 text-[#103178] px-3 py-1.5 rounded-lg">Sélectionner une image</span>

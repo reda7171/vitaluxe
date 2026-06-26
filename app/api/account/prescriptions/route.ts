@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import prisma from "../../../../lib/prisma";
 import { getToken } from "next-auth/jwt";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

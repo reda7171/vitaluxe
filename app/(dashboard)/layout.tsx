@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { SessionProvider } from "next-auth/react";
-import { Sidebar } from "@/components/dashboard/Sidebar";
-import { Header } from "@/components/dashboard/Header";
+import { Sidebar } from "../../components/dashboard/Sidebar";
+import { Header } from "../../components/dashboard/Header";
 
 export default function DashboardLayout({
     children,

@@ -50,22 +50,82 @@ async function main() {
 
     // ─── Brands ───────────────────────────────────────────────────────────────
     const brandData = [
-        { name: "La Roche-Posay", slug: "la-roche-posay", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/La_Roche-Posay_logo.svg/200px-La_Roche-Posay_logo.svg.png" },
-        { name: "Vichy", slug: "vichy", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Vichy_Laboratoires_logo.svg/200px-Vichy_Laboratoires_logo.svg.png" },
-        { name: "CeraVe", slug: "cerave", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/CeraVe_logo.svg/200px-CeraVe_logo.svg.png" },
-        { name: "Eucerin", slug: "eucerin", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Eucerin_logo.svg/200px-Eucerin_logo.svg.png" },
-        { name: "Avène", slug: "avene", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Eau_thermale_Av%C3%A8ne_logo.svg/200px-Eau_thermale_Av%C3%A8ne_logo.svg.png" },
+        // ── Soin Visage & Corps ──
+        { name: "La Roche-Posay", slug: "la-roche-posay", image: "https://logo.clearbit.com/laroche-posay.fr" },
+        { name: "Vichy", slug: "vichy", image: "https://logo.clearbit.com/vichy.fr" },
+        { name: "CeraVe", slug: "cerave", image: "https://logo.clearbit.com/cerave.fr" },
+        { name: "Eucerin", slug: "eucerin", image: "https://logo.clearbit.com/eucerin.fr" },
+        { name: "Avène", slug: "avene", image: "https://logo.clearbit.com/avene.com" },
+        { name: "Bioderma", slug: "bioderma", image: "https://logo.clearbit.com/bioderma.fr" },
+        { name: "Nuxe", slug: "nuxe", image: "https://logo.clearbit.com/nuxe.com" },
+        { name: "Caudalie", slug: "caudalie", image: "https://logo.clearbit.com/caudalie.com" },
+        { name: "Uriage", slug: "uriage", image: "https://logo.clearbit.com/uriage.com" },
+        { name: "Neutrogena", slug: "neutrogena", image: "https://logo.clearbit.com/neutrogena.com" },
+        { name: "Garnier", slug: "garnier", image: "https://logo.clearbit.com/garnier.fr" },
+        { name: "L'Oréal Paris", slug: "loreal-paris", image: "https://logo.clearbit.com/loreal-paris.fr" },
+        { name: "Nivea", slug: "nivea", image: "https://logo.clearbit.com/nivea.fr" },
+        { name: "Dove", slug: "dove", image: "https://logo.clearbit.com/dove.com" },
+        { name: "Weleda", slug: "weleda", image: "https://logo.clearbit.com/weleda.fr" },
+        { name: "SVR", slug: "svr", image: "https://logo.clearbit.com/svr.com" },
+        { name: "Filorga", slug: "filorga", image: "https://logo.clearbit.com/filorga.com" },
+        { name: "Clarins", slug: "clarins", image: "https://logo.clearbit.com/clarins.fr" },
+
+        // ── Cheveux ──
+        { name: "Kérastase", slug: "kerastase", image: "https://logo.clearbit.com/kerastase.fr" },
+        { name: "L'Oréal Professionnel", slug: "loreal-professionnel", image: "https://logo.clearbit.com/lorealprofessionnel.fr" },
+        { name: "Schwarzkopf", slug: "schwarzkopf", image: "https://logo.clearbit.com/schwarzkopf.fr" },
+        { name: "Head & Shoulders", slug: "head-shoulders", image: "https://logo.clearbit.com/headandshoulders.com" },
+        { name: "Elsève", slug: "elseve", image: "https://logo.clearbit.com/loreal-paris.fr" },
+        { name: "René Furterer", slug: "rene-furterer", image: "https://logo.clearbit.com/renefurterer.com" },
+
+        // ── Bébé & Enfant ──
+        { name: "Mustela", slug: "mustela", image: "https://logo.clearbit.com/mustela.com" },
+        { name: "Bébé Cadum", slug: "bebe-cadum", image: "https://logo.clearbit.com/cadum.fr" },
+        { name: "Chicco", slug: "chicco", image: "https://logo.clearbit.com/chicco.fr" },
+        { name: "Dodie", slug: "dodie", image: "https://logo.clearbit.com/dodie.fr" },
+
+        // ── Solaire ──
+        { name: "Ambre Solaire", slug: "ambre-solaire", image: "https://logo.clearbit.com/garnier.fr" },
+        { name: "Hawaiian Tropic", slug: "hawaiian-tropic", image: "https://logo.clearbit.com/hawaiiantropic.com" },
+        { name: "Altruist", slug: "altruist", image: "https://logo.clearbit.com/altruistuk.com" },
+
+        // ── Compléments & Santé ──
+        { name: "Arkopharma", slug: "arkopharma", image: "https://logo.clearbit.com/arkopharma.fr" },
+        { name: "Pileje", slug: "pileje", image: "https://logo.clearbit.com/pileje.com" },
+        { name: "Isostar", slug: "isostar", image: "https://logo.clearbit.com/isostar.com" },
+        { name: "Omega Pharma", slug: "omega-pharma", image: "https://logo.clearbit.com/omegapharma.com" },
+        { name: "Boiron", slug: "boiron", image: "https://logo.clearbit.com/boiron.fr" },
+
+        // ── Homme ──
+        { name: "Bulldog", slug: "bulldog", image: "https://logo.clearbit.com/bulldogskincare.com" },
+        { name: "Vichy Homme", slug: "vichy-homme", image: "https://logo.clearbit.com/vichy.fr" },
+        { name: "Nickel", slug: "nickel", image: "https://logo.clearbit.com/nickel.fr" },
+
+        // ── Sport & Nutrition ──
+        { name: "Optimum Nutrition", slug: "optimum-nutrition", image: "https://logo.clearbit.com/optimumnutrition.com" },
+        { name: "EA Fit", slug: "ea-fit", image: "https://logo.clearbit.com/eafit.com" },
+        { name: "Decathlon", slug: "decathlon", image: "https://logo.clearbit.com/decathlon.fr" },
+
+        // ── Hygiène ──
+        { name: "Sanex", slug: "sanex", image: "https://logo.clearbit.com/sanex.eu" },
+        { name: "Colgate", slug: "colgate", image: "https://logo.clearbit.com/colgate.com" },
+        { name: "Oral-B", slug: "oral-b", image: "https://logo.clearbit.com/oralb.com" },
+        { name: "Gillette", slug: "gillette", image: "https://logo.clearbit.com/gillette.com" },
+
+        // ── Bio & Naturel ──
+        { name: "Cattier", slug: "cattier", image: "https://logo.clearbit.com/cattier-paris.com" },
+        { name: "Melvita", slug: "melvita", image: "https://logo.clearbit.com/melvita.com" },
+        { name: "Sanoflore", slug: "sanoflore", image: "https://logo.clearbit.com/sanoflore.net" },
     ];
 
+    // Nettoyer les marques existantes pour éviter les conflits
+    await prisma.brand.deleteMany();
+
     for (const b of brandData) {
-        await prisma.brand.upsert({
-            where: { slug: b.slug },
-            update: {},
-            create: b,
-        });
+        await prisma.brand.create({ data: b });
     }
 
-    console.log("✅ Marques créées");
+    console.log("✅ Marques créées (" + brandData.length + ")");
 
     // ─── Products ─────────────────────────────────────────────────────────────
     const products = [

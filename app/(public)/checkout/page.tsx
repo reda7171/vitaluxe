@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { CheckoutView } from "@/components/checkout/checkout-view";
+import { CheckoutView } from "../../../components/checkout/checkout-view";
 
 export const metadata: Metadata = {
     title: "Commande | Vitaluxe",

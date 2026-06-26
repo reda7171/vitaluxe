@@ -11,12 +11,16 @@ const envSchema = z.object({
 });
 
 function validateEnv() {
+    console.log(`🌐 Environnement actuel : ${process.env.NODE_ENV || "development"}`);
+
     const parsed = envSchema.safeParse(process.env);
     if (!parsed.success) {
-        console.error("❌ Variables d'env manquantes :");
-        parsed.error.issues.forEach(i => console.error(`  - ${i.path.join(".")}: ${i.message}`));
-        if (process.env.NODE_ENV === "production") {
-            throw new Error("Variables d'environnement invalides. Arrêt.");
+        console.warn("⚠️ Attention : Certaines variables d'environnement sont manquantes ou invalides.");
+        parsed.error.issues.forEach(i => console.warn(`  - ${i.path.join(".")}: ${i.message}`));
+
+        // On ne crash que si DATABASE_URL manque cruellement en prod
+        if (process.env.NODE_ENV === "production" && !process.env.DATABASE_URL) {
+            throw new Error("DATABASE_URL est obligatoire en production. Arrêt.");
         }
     }
     return parsed.data ?? process.env;

@@ -1,19 +1,20 @@
-const { createServer } = require('http');
-const { parse } = require('url');
-const next = require('next');
+const path = require('path');
+require('dotenv').config();
 
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
-const handle = app.getRequestHandler();
+// Forcer le mode library pour Prisma sur Hostinger
+process.env.PRISMA_CLIENT_ENGINE_TYPE = 'library';
 
-const port = process.env.PORT || 3000;
+// Configuration de l'environnement
+process.env.NODE_ENV = 'production';
+process.env.HOSTNAME = '0.0.0.0';
+process.env.PORT = process.env.PORT || 3000;
 
-app.prepare().then(() => {
-    createServer((req, res) => {
-        const parsedUrl = parse(req.url, true);
-        handle(req, res, parsedUrl);
-    }).listen(port, (err) => {
-        if (err) throw err;
-        console.log(`> Ready on port ${port}`);
-    });
-});
+// Dossier où se trouve le build standalone
+const standaloneDir = path.join(__dirname, '.next', 'standalone');
+
+// IMPORTANT : On change le répertoire de travail pour que Next.js 
+// trouve les dossiers 'public' et '.next/static' qui sont dedans
+process.chdir(standaloneDir);
+
+// On lance le serveur
+require(path.join(standaloneDir, 'server.js'));

@@ -16,9 +16,21 @@ interface Suggestion {
 }
 
 const CATEGORIES = ["Toutes", "Visage", "Corps", "Cheveux", "Solaire", "Anti-Âge"];
-const POPULAR_SEARCHES = ["Crème hydratante Vichy", "Sérum Anti-Âge", "Écran Solaire 50+", "Nettoyant CeraVe"];
 
 export function GlobalSearch() {
+    const [popularSearches, setPopularSearches] = useState<string[]>([]);
+    
+    useEffect(() => {
+        fetch("/api/products/popular")
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) {
+                    setPopularSearches(data);
+                }
+            })
+            .catch(() => {});
+    }, []);
+
     const [query, setQuery] = useState("");
     const [category, setCategory] = useState("Toutes");
     const [results, setResults] = useState<Suggestion[]>([]);
@@ -121,7 +133,7 @@ export function GlobalSearch() {
                                 <TrendingUp size={14} /> Recherches populaires
                             </h3>
                             <div className="flex flex-wrap gap-2">
-                                {POPULAR_SEARCHES.map(term => (
+                                {popularSearches.map((term: string) => (
                                     <button
                                         key={term}
                                         onClick={() => { setQuery(term); document.querySelector('form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })); }}
@@ -144,7 +156,15 @@ export function GlobalSearch() {
                                         onClick={() => { setOpen(false); setQuery(""); }}
                                         className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors group">
                                         <div className="w-12 h-12 rounded-xl border bg-slate-100 shrink-0 overflow-hidden relative">
-                                            {img ? <img src={img} alt={p.name} className="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition-transform" /> : <span className="text-xl flex items-center justify-center h-full">💊</span>}
+                                            {img ? (
+                                                <img 
+                                                    src={img} 
+                                                    alt={p.name} 
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                                                />
+                                            ) : (
+                                                <span className="text-xl flex items-center justify-center h-full">💊</span>
+                                            )}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-bold text-slate-800 truncate group-hover:text-[#103178] transition-colors">{p.name}</p>

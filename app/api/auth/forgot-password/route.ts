@@ -1,8 +1,8 @@
 const crypto = require("crypto");
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { rateLimit } from "@/lib/rate-limit";
-import { sendPasswordResetEmail } from "@/lib/email";
+import prisma from "../../../../lib/prisma";
+import { rateLimit } from "../../../../lib/rate-limit";
+import { sendPasswordResetEmail } from "../../../../lib/email";
 
 export async function POST(req: Request) {
     try {

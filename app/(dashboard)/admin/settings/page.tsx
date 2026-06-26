@@ -7,10 +7,12 @@ import {
     Save, CheckCircle2, Mail, Phone, MapPin, CreditCard, Package
 } from "lucide-react";
 
-type Tab = "boutique" | "livraison" | "paiement" | "notifications" | "securite" | "apparence";
+type Tab = "boutique" | "livraison" | "paiement" | "notifications" | "securite" | "apparence" | "header" | "footer";
 
 const TABS: { id: Tab; label: string; icon: typeof Store }[] = [
     { id: "boutique", label: "Boutique", icon: Store },
+    { id: "header", label: "Header", icon: Globe },
+    { id: "footer", label: "Footer", icon: Package },
     { id: "livraison", label: "Livraison", icon: Truck },
     { id: "paiement", label: "Paiement", icon: CreditCard },
     { id: "notifications", label: "Notifications", icon: Bell },
@@ -138,15 +140,44 @@ export default function AdminSettingsPage() {
         productsPerPage: "12",
     });
 
+    // ── Header state
+    const [header, setHeader] = useState({
+        topBannerText: "Livraison gratuite Rabat à partir de 350 Dh — Autres villes 600 Dh",
+        phone: "06 66 69 54 86",
+        phoneLink: "+212512345678",
+        whatsapp: "212512345678",
+    });
+
+    // ── Footer state
+    const [footer, setFooter] = useState({
+        description: "Votre parapharmacie en ligne de confiance pour tous vos besoins en santé, beauté et bien-être.",
+        facebookUrl: "https://www.facebook.com/vitaluxema",
+        instagramUrl: "https://www.instagram.com/vitaluxema",
+        tiktokUrl: "https://www.tiktok.com/@vitaluxema",
+        address: "123 Avenue de la Beauté, Casablanca, Maroc",
+        phone: "+212 5 12 34 56 78",
+        email: "contact@vitaluxe.ma",
+    });
+
     useEffect(() => {
         fetch("/api/admin/settings")
             .then(res => res.json())
             .then(data => {
-                if (data.boutique) setBoutique(data.boutique);
-                if (data.livraison) setLivraison(data.livraison);
-                if (data.paiement) setPaiement(data.paiement);
-                if (data.notifs) setNotifs(data.notifs);
-                if (data.apparence) setApparence(data.apparence);
+                const parse = (val: any) => {
+                    if (!val) return null;
+                    if (typeof val === 'string') {
+                        try { return JSON.parse(val); } catch { return val; }
+                    }
+                    return val;
+                };
+
+                if (data.boutique) setBoutique(parse(data.boutique));
+                if (data.livraison) setLivraison(parse(data.livraison));
+                if (data.paiement) setPaiement(parse(data.paiement));
+                if (data.notifs) setNotifs(parse(data.notifs));
+                if (data.apparence) setApparence(parse(data.apparence));
+                if (data.header) setHeader(parse(data.header));
+                if (data.footer) setFooter(parse(data.footer));
             })
             .catch(console.error);
     }, []);
@@ -155,11 +186,21 @@ export default function AdminSettingsPage() {
         e.preventDefault();
         setSaving(true);
 
+        const payload = {
+            boutique: JSON.stringify(boutique),
+            livraison: JSON.stringify(livraison),
+            paiement: JSON.stringify(paiement),
+            notifs: JSON.stringify(notifs),
+            apparence: JSON.stringify(apparence),
+            header: JSON.stringify(header),
+            footer: JSON.stringify(footer),
+        };
+
         try {
             const res = await fetch("/api/admin/settings", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ boutique, livraison, paiement, notifs, apparence }),
+                body: JSON.stringify(payload),
             });
 
             if (res.ok) {
@@ -434,6 +475,59 @@ export default function AdminSettingsPage() {
                                     )}
                                 </div>
 
+                                <div className="flex justify-end"><SaveButton saving={saving} saved={saved} /></div>
+                            </div>
+                        )}
+
+                        {/* ── Header ── */}
+                        {tab === "header" && (
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-5">
+                                <h2 className="font-semibold text-slate-800 flex items-center gap-2"><Globe size={18} /> Configuration du Header</h2>
+                                <Field label="Texte de la barre supérieure (Top Banner)">
+                                    <Input value={header.topBannerText} onChange={(e) => setHeader({ ...header, topBannerText: e.target.value })} />
+                                </Field>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Field label="Téléphone affiché">
+                                        <Input value={header.phone} onChange={(e) => setHeader({ ...header, phone: e.target.value })} />
+                                    </Field>
+                                    <Field label="Lien du téléphone (ex: tel:+212...)">
+                                        <Input value={header.phoneLink} onChange={(e) => setHeader({ ...header, phoneLink: e.target.value })} />
+                                    </Field>
+                                    <Field label="Numéro WhatsApp (sans le + ou 00)">
+                                        <Input value={header.whatsapp} onChange={(e) => setHeader({ ...header, whatsapp: e.target.value })} placeholder="2126..." />
+                                    </Field>
+                                </div>
+                                <div className="flex justify-end"><SaveButton saving={saving} saved={saved} /></div>
+                            </div>
+                        )}
+
+                        {/* ── Footer ── */}
+                        {tab === "footer" && (
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-5">
+                                <h2 className="font-semibold text-slate-800 flex items-center gap-2"><Package size={18} /> Configuration du Footer</h2>
+                                <Field label="Description du footer">
+                                    <Textarea rows={3} value={footer.description} onChange={(e) => setFooter({ ...footer, description: e.target.value })} />
+                                </Field>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Field label="Facebook URL">
+                                        <Input value={footer.facebookUrl} onChange={(e) => setFooter({ ...footer, facebookUrl: e.target.value })} />
+                                    </Field>
+                                    <Field label="Instagram URL">
+                                        <Input value={footer.instagramUrl} onChange={(e) => setFooter({ ...footer, instagramUrl: e.target.value })} />
+                                    </Field>
+                                    <Field label="TikTok URL">
+                                        <Input value={footer.tiktokUrl} onChange={(e) => setFooter({ ...footer, tiktokUrl: e.target.value })} />
+                                    </Field>
+                                    <Field label="Email de contact">
+                                        <Input value={footer.email} onChange={(e) => setFooter({ ...footer, email: e.target.value })} />
+                                    </Field>
+                                    <Field label="Téléphone">
+                                        <Input value={footer.phone} onChange={(e) => setFooter({ ...footer, phone: e.target.value })} />
+                                    </Field>
+                                    <Field label="Adresse">
+                                        <Input value={footer.address} onChange={(e) => setFooter({ ...footer, address: e.target.value })} />
+                                    </Field>
+                                </div>
                                 <div className="flex justify-end"><SaveButton saving={saving} saved={saved} /></div>
                             </div>
                         )}

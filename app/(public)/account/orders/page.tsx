@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { AccountLayout } from "@/components/account/account-layout";
-import { OrdersView } from "@/components/account/orders-view";
+import { AccountLayout } from "../../../../components/account/account-layout";
+import { OrdersView } from "../../../../components/account/orders-view";
 
 export const metadata: Metadata = {
     title: "Mes Commandes | Vitaluxe",

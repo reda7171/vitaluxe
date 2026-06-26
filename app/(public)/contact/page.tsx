@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ContactPageClient from "@/components/contact/contact-view";
+import ContactPageClient from "../../../components/contact/contact-view";
 
 export const metadata: Metadata = {
     title: "Contact | Vitaluxe — Support & Assistance",

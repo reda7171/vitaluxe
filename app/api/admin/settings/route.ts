@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import prisma from "../../../../lib/prisma";
+import { auth } from "../../../../lib/auth";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
@@ -23,12 +23,12 @@ export async function POST(req: Request) {
         const session = await auth();
         if (session?.user?.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
-        const { boutique, livraison, paiement, notifs, apparence } = await req.json();
+        const { boutique, livraison, paiement, notifs, apparence, header, footer } = await req.json();
 
         const updated = await db.storeSettings.upsert({
             where: { id: "1" },
-            update: { boutique, livraison, paiement, notifs, apparence },
-            create: { id: "1", boutique, livraison, paiement, notifs, apparence },
+            update: { boutique, livraison, paiement, notifs, apparence, header, footer },
+            create: { id: "1", boutique, livraison, paiement, notifs, apparence, header, footer },
         });
 
         return NextResponse.json(updated);

@@ -9,19 +9,21 @@ export type Review = {
 };
 
 export type Product = {
-    id: number;
+    id: string;
     name: string;
+    slug?: string;
     brand: string;
     category: string;
     price: number;
-    salePrice?: number;
+    salePrice?: number | null;
     rating: number;
     reviews: number;
-    image: string;
-    images?: string[];
+    image?: string;
+    images?: string[] | string;
+    stock?: number;
     badge?: "Nouveau" | "Promo" | "Best-seller";
     inStock: boolean;
-    tags: string[];
+    tags?: string[];
     description?: string;
     benefits?: string[];
     ingredients?: string;
@@ -34,7 +36,7 @@ export const BRANDS = ["La Roche-Posay", "Vichy", "CeraVe", "Eucerin", "Avène",
 
 export const ALL_PRODUCTS: Product[] = [
     {
-        id: 1,
+        id: "1",
         name: "Sérum Hydratant Intense Acide Hyaluronique",
         brand: "La Roche-Posay",
         category: "Visage",
@@ -96,7 +98,7 @@ export const ALL_PRODUCTS: Product[] = [
         ],
     },
     {
-        id: 2,
+        id: "2",
         name: "Crème de Jour Anti-Âge Collagène",
         brand: "Vichy",
         category: "Visage",
@@ -117,7 +119,7 @@ export const ALL_PRODUCTS: Product[] = [
         howToUse: "Appliquer le matin sur visage et cou en massant délicatement. Éviter le contour des yeux.",
     },
     {
-        id: 3,
+        id: "3",
         name: "Baume Hydratant Peaux Sèches",
         brand: "CeraVe",
         category: "Corps",
@@ -136,7 +138,7 @@ export const ALL_PRODUCTS: Product[] = [
         howToUse: "Appliquer sur corps et mains sèches, matin et soir ou selon les besoins.",
     },
     {
-        id: 4,
+        id: "4",
         name: "Écran Solaire Toucher Sec SPF 50+",
         brand: "Eucerin",
         category: "Solaire",
@@ -156,7 +158,7 @@ export const ALL_PRODUCTS: Product[] = [
         howToUse: "Appliquer généreusement 20 minutes avant l'exposition au soleil. Renouveler toutes les 2h.",
     },
     {
-        id: 5,
+        id: "5",
         name: "Huile Prodigieuse Florale Multi-Fonctions",
         brand: "Nuxe",
         category: "Corps",
@@ -178,7 +180,7 @@ export const ALL_PRODUCTS: Product[] = [
         howToUse: "Appliquer quelques gouttes sur la peau ou les cheveux. Masser doucement.",
     },
     {
-        id: 6,
+        id: "6",
         name: "Eau Thermale Spray Hydratant",
         brand: "Avène",
         category: "Visage",
@@ -195,7 +197,7 @@ export const ALL_PRODUCTS: Product[] = [
         howToUse: "Vaporiser à 20 cm du visage. Laisser sécher à l'air libre ou tamponner délicatement.",
     },
     {
-        id: 7,
+        id: "7",
         name: "Shampoing Doux Nutriprotein",
         brand: "Vichy",
         category: "Cheveux",
@@ -212,7 +214,7 @@ export const ALL_PRODUCTS: Product[] = [
         howToUse: "Appliquer sur cheveux mouillés, masser le cuir chevelu, rincer abondamment. Répéter si nécessaire.",
     },
     {
-        id: 8,
+        id: "8",
         name: "Micellar Water 3-in-1 Sensitive",
         brand: "Bioderma",
         category: "Visage",
@@ -231,7 +233,7 @@ export const ALL_PRODUCTS: Product[] = [
         howToUse: "Imbiber un coton et appliquer sur le visage (yeux inclus). Ne pas frotter. Pas besoin de rincer.",
     },
     {
-        id: 9,
+        id: "9",
         name: "Complément Alimentaire Cheveux & Ongles",
         brand: "Vichy",
         category: "Compléments",
@@ -249,7 +251,7 @@ export const ALL_PRODUCTS: Product[] = [
         howToUse: "Prendre 1 gélule par jour au cours d'un repas avec un grand verre d'eau.",
     },
     {
-        id: 10,
+        id: "10",
         name: "Crème Apaisante Peaux Réactives",
         brand: "La Roche-Posay",
         category: "Visage",
@@ -266,7 +268,7 @@ export const ALL_PRODUCTS: Product[] = [
         howToUse: "Appliquer matin et/ou soir sur visage propre. Éviter les contours des yeux.",
     },
     {
-        id: 11,
+        id: "11",
         name: "Lotion Tonique Régénérante",
         brand: "Avène",
         category: "Visage",
@@ -283,7 +285,7 @@ export const ALL_PRODUCTS: Product[] = [
         howToUse: "Appliquer sur coton après nettoyage, matin et soir, avant tout soin.",
     },
     {
-        id: 12,
+        id: "12",
         name: "Gel Douche Surgras Nourrissant",
         brand: "CeraVe",
         category: "Corps",

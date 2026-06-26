@@ -129,7 +129,11 @@ export function ProductReviews({ productId }: { productId: string }) {
                                 <div className="flex gap-3 mt-3 flex-wrap">
                                     {images.map((img, idx) => (
                                         <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border shadow-sm">
-                                            <img src={img} alt="Avis" className="w-full h-full object-cover" />
+                                            <img 
+                                                src={img} 
+                                                alt={`Avis ${idx}`} 
+                                                className="w-full h-full object-cover" 
+                                            />
                                             <button type="button" onClick={() => setImages(images.filter((_, i) => i !== idx))}
                                                 className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black transition-colors">
                                                 <X size={12} />
@@ -202,7 +206,11 @@ export function ProductReviews({ productId }: { productId: string }) {
                                     <div className="flex gap-2 flex-wrap">
                                         {r.images.map((img, idx) => (
                                             <a key={idx} href={img} target="_blank" rel="noreferrer" className="block w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm hover:opacity-90 transition-opacity">
-                                                <img src={img} alt={`Photo de ${r.user.name}`} className="w-full h-full object-cover" />
+                                                <img 
+                                                    src={img} 
+                                                    alt={`Avis Photo ${idx}`} 
+                                                    className="w-full h-full object-cover" 
+                                                />
                                             </a>
                                         ))}
                                     </div>

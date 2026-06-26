@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useReducer, useCallback, useEffect, ReactNode } from "react";
-import type { Product } from "@/lib/data/products";
+import { useSession } from "next-auth/react";
+import type { Product } from "../data/products";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 export type CartItem = {
@@ -16,8 +17,8 @@ type CartState = {
 
 type CartAction =
     | { type: "ADD_ITEM"; product: Product; quantity?: number }
-    | { type: "REMOVE_ITEM"; productId: number }
-    | { type: "UPDATE_QTY"; productId: number; quantity: number }
+    | { type: "REMOVE_ITEM"; productId: string }
+    | { type: "UPDATE_QTY"; productId: string; quantity: number }
     | { type: "CLEAR_CART" }
     | { type: "OPEN_CART" }
     | { type: "CLOSE_CART" };
@@ -73,8 +74,8 @@ type CartContextType = {
     totalItems: number;
     totalPrice: number;
     addItem: (product: Product, quantity?: number) => void;
-    removeItem: (productId: number) => void;
-    updateQty: (productId: number, quantity: number) => void;
+    removeItem: (productId: string) => void;
+    updateQty: (productId: string, quantity: number) => void;
     clearCart: () => void;
     openCart: () => void;
     closeCart: () => void;
@@ -96,6 +97,7 @@ function loadFromStorage(): CartItem[] {
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 export function CartProvider({ children }: { children: ReactNode }) {
+    const { data: session } = useSession();
     const [state, dispatch] = useReducer(cartReducer, {
         items: loadFromStorage(),
         isOpen: false,
@@ -106,17 +108,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
     }, [state.items]);
 
+    // Save cart to server for authenticated users (abandon cart tracking)
+    useEffect(() => {
+        if (!session?.user) return;
+        if (state.items.length === 0) return;
+
+        const totalAmount = state.items.reduce(
+            (sum, i) => sum + (i.product.salePrice ?? i.product.price) * i.quantity, 0
+        );
+
+        const timer = setTimeout(() => {
+            fetch("/api/cart/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ items: state.items, totalAmount }),
+            }).catch(() => { });
+        }, 3000); // debounce 3s
+
+        return () => clearTimeout(timer);
+    }, [state.items, session]);
+
     const addItem = useCallback(
         (product: Product, quantity?: number) =>
             dispatch({ type: "ADD_ITEM", product, quantity }),
         []
     );
     const removeItem = useCallback(
-        (productId: number) => dispatch({ type: "REMOVE_ITEM", productId }),
+        (productId: string) => dispatch({ type: "REMOVE_ITEM", productId }),
         []
     );
     const updateQty = useCallback(
-        (productId: number, quantity: number) =>
+        (productId: string, quantity: number) =>
             dispatch({ type: "UPDATE_QTY", productId, quantity }),
         []
     );

@@ -1,0 +1,62 @@
+﻿   Ôû▓ Next.js 15.1.7
+   - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+node.exe : Failed to compile.
+Au caractère C:\Users\HP\AppDa
+ta\Roaming\npm\npx.ps1:24 : 5
++     & "node$exe"  "$basedir/
+node_modules/npm/bin/npx-cli.j
+s" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: (Failed to  
+   compile.:String) [], Rem   
+ oteException
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+
+./app/(dashboard)/admin/page.t
+sx
+Error:   [31mx[0m 
+Unexpected token `div`. 
+Expected jsx identifier
+     ,-[[36;1;4mC:\Users\HP\D
+esktop\vitaluxe-web\app\(dashb
+oard)\admin\page.tsx[0m:115:1
+]
+ [2m112[0m |     };
+ [2m113[0m | 
+ [2m114[0m |     return (
+ [2m115[0m |         <div 
+className="space-y-8 
+animate-in fade-in 
+duration-700">
+     : [35;1m         ^^^[0m
+ [2m116[0m |             
+<div className="flex flex-col 
+md:flex-row md:items-center 
+justify-between gap-4">
+ [2m117[0m |                
+ <div>
+ [2m117[0m |                
+     <h1 className="text-4xl 
+font-black tracking-tight 
+text-slate-900">Tableau de 
+bord</h1>
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./app/(dashboard)/admin/page.t
+sx
+
+
+> Build failed because of 
+webpack errors

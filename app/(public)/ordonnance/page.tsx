@@ -101,7 +101,11 @@ export default function OrdonnancePage() {
                         {/* Aperçu image */}
                         {file.startsWith("data:image") && (
                             <div className="rounded-xl overflow-hidden border border-slate-200">
-                                <img src={file} alt="Ordonnance" className="w-full max-h-64 object-contain bg-slate-50" />
+                                <img 
+                                    src={file} 
+                                    alt="Aperçu de l'ordonnance" 
+                                    className="w-full h-auto object-contain max-h-[400px]" 
+                                />
                             </div>
                         )}
 

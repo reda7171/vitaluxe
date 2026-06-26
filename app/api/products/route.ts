@@ -1,9 +1,14 @@
-import prisma from "@/lib/prisma";
+import prisma from "../../../lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET() {
-    // Optimisation : sélection des champs nécessaires uniquement et tri manuel JS
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const ids = searchParams.get("ids")?.split(",");
+
+    const where = ids ? { id: { in: ids } } : {};
+
     const rawProducts = await prisma.product.findMany({
+        where,
         select: {
             id: true,
             name: true,
@@ -21,7 +26,21 @@ export async function GET() {
     });
 
     const sorted = rawProducts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return NextResponse.json(sorted);
+
+    // Parse images for each product
+    const products = sorted.map(p => {
+        let parsedImages: any = p.images;
+        if (typeof p.images === "string") {
+            try {
+                parsedImages = JSON.parse(p.images);
+            } catch {
+                parsedImages = [p.images].filter(Boolean);
+            }
+        }
+        return { ...p, images: parsedImages } as any;
+    });
+
+    return NextResponse.json(products);
 }
 
 export async function POST(req: Request) {

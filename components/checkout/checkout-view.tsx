@@ -10,13 +10,13 @@ import {
 } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGift } from "@fortawesome/free-solid-svg-icons";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useCart } from "@/lib/context/cart-context";
-import { StripeCheckout } from "@/components/checkout/stripe-checkout";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Separator } from "../ui/separator";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { useCart } from "../../lib/context/cart-context";
+import { StripeCheckout } from "./stripe-checkout";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type FormData = {
@@ -182,8 +182,11 @@ function OrderSummary({
                             <div className="relative shrink-0">
                                 <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border flex items-center justify-center">
                                     {imageSrc ? (
-                                        <img src={imageSrc} alt={item.product.name} className="w-full h-full object-cover" />
-                                    ) : (
+                                        <img 
+                                            src={imageSrc} 
+                                            alt={item.product.name} 
+                                            className="w-full h-full object-cover" 
+                                        />                                    ) : (
                                         <span className="text-lg font-bold text-slate-400">{item.product.name[0]}</span>
                                     )}
                                 </div>
@@ -474,8 +477,11 @@ export function CheckoutView() {
                                                 <div key={item.product.id} className="flex gap-4 py-3 border-b last:border-b-0">
                                                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 border shrink-0 flex items-center justify-center">
                                                         {imgSrc2 ? (
-                                                            <img src={imgSrc2} alt={item.product.name} className="w-full h-full object-cover" />
-                                                        ) : (
+                                                        <img 
+                                            src={imgSrc2} 
+                                            alt={item.product.name} 
+                                            className="w-full h-full object-cover" 
+                                        />                                                        ) : (
                                                             <span className="text-xl font-bold text-slate-400">{item.product.name[0]}</span>
                                                         )}
                                                     </div>

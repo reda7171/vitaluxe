@@ -60,16 +60,16 @@ jobs:
             ls -la
             
             # Permissions et Cron
-            if [ -d "scripts" ]; then
+            if [ -f "scripts/backup-db.sh" ]; then
               echo "🔐 Configuration des permissions et Cron..."
               echo "${{ secrets.VPS_PASSWORD }}" | sudo -S chmod +x scripts/backup-db.sh
               (crontab -l 2>/dev/null | grep -q "backup-db.sh") || (crontab -l 2>/dev/null; echo "0 3 * * * /var/www/vitaluxema/scripts/backup-db.sh >> /var/www/vitaluxema/backups/backup.log 2>&1") | crontab -
             else
-              echo "⚠️ Dossier 'scripts' non trouvé !"
+              echo "⚠️ Fichier 'scripts/backup-db.sh' non trouvé, étape ignorée."
             fi
             
-            # Rebuild et Restart UNIQUEMENT le service 'vitaluxe-app'
+            # Rebuild et Restart UNIQUEMENT le service 'app'
             echo "🚀 Rechargement du service application..."
             echo "${{ secrets.VPS_PASSWORD }}" | sudo -S docker rm -f vitaluxe-app || true
             # On utilise 'docker compose' (v2) si possible, et --no-deps pour ne pas toucher aux autres conteneurs
-            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S docker compose up -d --build --force-recreate --no-deps vitaluxe-app || echo "${{ secrets.VPS_PASSWORD }}" | sudo -S docker-compose up -d --build --force-recreate --no-deps vitaluxe-app
+            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S docker compose up -d --build --force-recreate --no-deps app || echo "${{ secrets.VPS_PASSWORD }}" | sudo -S docker-compose up -d --build --force-recreate --no-deps app

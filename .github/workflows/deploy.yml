@@ -1,0 +1,75 @@
+name: Deploy Vitaluxe to VPS
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Requis pour SonarQube
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 2222
+          script: |
+            # Aller dans le dossier, le créer s'il n'existe pas
+            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S mkdir -p /var/www/vitaluxema
+            cd /var/www/vitaluxema
+            
+            # Initialisation robuste de Git si absente
+            if [ ! -d ".git" ]; then
+              echo "🔧 Initialisation du dépôt Git..."
+              echo "${{ secrets.VPS_PASSWORD }}" | sudo -S git init
+              echo "${{ secrets.VPS_PASSWORD }}" | sudo -S git remote add origin https://github.com/reda7171/vitaluxe.git
+            fi
+
+            # Mettre à jour l'URL pour inclure le token d'accès (pour éviter le prompt de login)
+            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/reda7171/vitaluxe.git
+
+            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S git config --global --add safe.directory /var/www/vitaluxema
+            
+            # Debug: Infos Git
+            echo "🔍 Infos Git sur le VPS :"
+            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S git remote -v
+            
+            # Synchronisation forcée
+            echo "📥 Récupération et synchronisation..."
+            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S git fetch origin main
+            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S git checkout -f main
+            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S git reset --hard origin/main
+            
+            # Debug: lister les fichiers
+            echo "📂 Contenu du dossier :"
+            ls -la
+            
+            # Permissions et Cron
+            if [ -d "scripts" ]; then
+              echo "🔐 Configuration des permissions et Cron..."
+              echo "${{ secrets.VPS_PASSWORD }}" | sudo -S chmod +x scripts/backup-db.sh
+              (crontab -l 2>/dev/null | grep -q "backup-db.sh") || (crontab -l 2>/dev/null; echo "0 3 * * * /var/www/vitaluxema/scripts/backup-db.sh >> /var/www/vitaluxema/backups/backup.log 2>&1") | crontab -
+            else
+              echo "⚠️ Dossier 'scripts' non trouvé !"
+            fi
+            
+            # Rebuild et Restart UNIQUEMENT le service 'vitaluxe-app'
+            echo "🚀 Rechargement du service application..."
+            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S docker rm -f vitaluxe-app || true
+            # On utilise 'docker compose' (v2) si possible, et --no-deps pour ne pas toucher aux autres conteneurs
+            echo "${{ secrets.VPS_PASSWORD }}" | sudo -S docker compose up -d --build --force-recreate --no-deps vitaluxe-app || echo "${{ secrets.VPS_PASSWORD }}" | sudo -S docker-compose up -d --build --force-recreate --no-deps vitaluxe-app

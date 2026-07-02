@@ -5,12 +5,13 @@ const prisma = new PrismaClient();
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const data = await request.json();
+    const resolvedParams = await params;
     const reservation = await prisma.reservation.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: {
         status: data.status,
       }

@@ -5,12 +5,13 @@ const prisma = new PrismaClient();
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const data = await request.json();
+    const resolvedParams = await params;
     const service = await prisma.pharmacyService.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: {
         name: data.name,
         description: data.description,
@@ -29,11 +30,12 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await prisma.pharmacyService.delete({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     });
     return NextResponse.json({ success: true });
   } catch (error) {

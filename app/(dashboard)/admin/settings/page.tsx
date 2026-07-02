@@ -7,7 +7,7 @@ import {
     Save, CheckCircle2, Mail, Phone, MapPin, CreditCard, Package
 } from "lucide-react";
 
-type Tab = "boutique" | "livraison" | "paiement" | "notifications" | "securite" | "apparence" | "header" | "footer";
+type Tab = "boutique" | "livraison" | "paiement" | "notifications" | "securite" | "apparence" | "header" | "footer" | "modules";
 
 const TABS: { id: Tab; label: string; icon: typeof Store }[] = [
     { id: "boutique", label: "Boutique", icon: Store },
@@ -18,6 +18,7 @@ const TABS: { id: Tab; label: string; icon: typeof Store }[] = [
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "securite", label: "Sécurité", icon: Shield },
     { id: "apparence", label: "Apparence", icon: Palette },
+    { id: "modules", label: "Modules & Fonctionnalités", icon: Package },
 ];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -159,6 +160,12 @@ export default function AdminSettingsPage() {
         email: "contact@vitaluxe.ma",
     });
 
+    // ── Modules state
+    const [modules, setModules] = useState({
+        enableServices: true,
+        enablePOS: true,
+    });
+
     useEffect(() => {
         fetch("/api/admin/settings")
             .then(res => res.json())
@@ -178,6 +185,7 @@ export default function AdminSettingsPage() {
                 if (data.apparence) setApparence(parse(data.apparence));
                 if (data.header) setHeader(parse(data.header));
                 if (data.footer) setFooter(parse(data.footer));
+                if (data.modules) setModules(parse(data.modules));
             })
             .catch(console.error);
     }, []);
@@ -194,6 +202,7 @@ export default function AdminSettingsPage() {
             apparence: JSON.stringify(apparence),
             header: JSON.stringify(header),
             footer: JSON.stringify(footer),
+            modules: JSON.stringify(modules),
         };
 
         try {
@@ -528,6 +537,39 @@ export default function AdminSettingsPage() {
                                         <Input value={footer.address} onChange={(e) => setFooter({ ...footer, address: e.target.value })} />
                                     </Field>
                                 </div>
+                                <div className="flex justify-end"><SaveButton saving={saving} saved={saved} /></div>
+                            </div>
+                        )}
+
+                        {/* ── Modules ── */}
+                        {tab === "modules" && (
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-5">
+                                <h2 className="font-semibold text-slate-800 flex items-center gap-2"><Package size={18} /> Modules & Fonctionnalités</h2>
+                                <p className="text-sm text-slate-500 mb-4">Activez ou désactivez les fonctionnalités additionnelles de votre parapharmacie.</p>
+                                
+                                <div className="space-y-4">
+                                    <div className="p-4 border border-slate-100 rounded-lg bg-slate-50">
+                                        <Toggle 
+                                            label="Activer le module Services et Réservations" 
+                                            checked={modules.enableServices} 
+                                            onChange={() => setModules({ ...modules, enableServices: !modules.enableServices })} 
+                                        />
+                                        <p className="text-xs text-slate-500 mt-2 ml-1">
+                                            Si activé, vos clients pourront voir et réserver vos services depuis la page publique, et vous pourrez les gérer depuis le menu admin.
+                                        </p>
+                                    </div>
+                                    <div className="p-4 border border-slate-100 rounded-lg bg-slate-50">
+                                        <Toggle 
+                                            label="Activer le Point de Vente (POS)" 
+                                            checked={modules.enablePOS} 
+                                            onChange={() => setModules({ ...modules, enablePOS: !modules.enablePOS })} 
+                                        />
+                                        <p className="text-xs text-slate-500 mt-2 ml-1">
+                                            Si activé, vous aurez accès à l'interface de caisse (Point de Vente) pour encaisser les ventes sur place depuis la barre latérale.
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <div className="flex justify-end"><SaveButton saving={saving} saved={saved} /></div>
                             </div>
                         )}

@@ -14,11 +14,15 @@ export default function DashboardLayout({
 
     return (
         <SessionProvider>
-            <div className="flex h-screen bg-slate-50 overflow-hidden">
-                <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-                <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-                    <Header onMenuClick={() => setIsSidebarOpen(true)} />
-                    <main className="flex-1 overflow-y-auto p-4 lg:p-6 overflow-x-hidden">
+            <div className="flex h-screen bg-slate-50 overflow-hidden print:h-auto print:overflow-visible print:bg-white print:block">
+                <div className="print:hidden">
+                    <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                </div>
+                <div className="flex flex-col flex-1 min-w-0 overflow-hidden print:overflow-visible print:block">
+                    <div className="print:hidden">
+                        <Header onMenuClick={() => setIsSidebarOpen(true)} />
+                    </div>
+                    <main className="flex-1 overflow-y-auto p-4 lg:p-6 overflow-x-hidden print:overflow-visible print:p-0 print:m-0 print:block">
                         {children}
                     </main>
                 </div>

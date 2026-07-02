@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
     LayoutDashboard, Package, ShoppingCart, MessageSquare, Mail,
-    Users, Settings, Tag, LogOut, ChevronRight, BarChart2, Percent, FileText, Star, X
+    Users, Settings, Tag, LogOut, ChevronRight, BarChart2, Percent, FileText, Star, X, Calendar, Stethoscope
 } from "lucide-react";
 
 export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
@@ -18,6 +18,8 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
     const [unreadMessages, setUnreadMessages] = useState(0);
     const [pendingPrescriptions, setPendingPrescriptions] = useState(0);
     const [abandonedCartsCount, setAbandonedCartsCount] = useState(0);
+    const [enableServices, setEnableServices] = useState(true);
+    const [enablePOS, setEnablePOS] = useState(true);
 
     useEffect(() => {
         fetch("/api/admin/notifications")
@@ -27,6 +29,12 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
                 setUnreadMessages(d.messagesCount ?? 0);
                 setPendingPrescriptions(d.prescriptionsCount ?? 0);
                 setAbandonedCartsCount(d.abandonedCartsCount ?? 0);
+                if (d.modules && typeof d.modules.enableServices === 'boolean') {
+                    setEnableServices(d.modules.enableServices);
+                }
+                if (d.modules && typeof d.modules.enablePOS === 'boolean') {
+                    setEnablePOS(d.modules.enablePOS);
+                }
             })
             .catch(() => { });
     }, [pathname]);
@@ -49,6 +57,17 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         { href: "/admin/prescriptions", label: "Ordonnances", icon: FileText, badge: pendingPrescriptions },
         { href: "/admin/abandoned-carts", label: "Paniers Abandonnés", icon: ShoppingCart, badge: abandonedCartsCount },
     ];
+
+    if (enablePOS) {
+        NAV.push({ href: "/admin/pos", label: "Point de Vente (POS)", icon: ShoppingCart });
+    }
+
+    if (enableServices) {
+        NAV.push(
+            { href: "/admin/services", label: "Services", icon: Stethoscope },
+            { href: "/admin/reservations", label: "Réservations", icon: Calendar }
+        );
+    }
 
     return (
         <aside className={`w-64 bg-[#0f172a] text-white flex flex-col h-full shrink-0 shadow-xl fixed xl:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full xl:translate-x-0"}`}>

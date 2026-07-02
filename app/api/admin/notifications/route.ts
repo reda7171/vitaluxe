@@ -9,14 +9,24 @@ export async function GET() {
         return NextResponse.json({ count: 0, messagesCount: 0 });
     }
 
-    const [count, messagesCount, prescriptionsCount, reviewsCount, lowStockCount, abandonedCartsCount] = await Promise.all([
+    const [count, messagesCount, prescriptionsCount, reviewsCount, lowStockCount, abandonedCartsCount, settings] = await Promise.all([
         prisma.order.count({ where: { status: "PENDING" } }),
         prisma.contactMessage.count({ where: { status: "UNREAD" } }),
         prisma.prescription.count({ where: { status: "PENDING" } }),
         prisma.review.count({ where: { status: "PENDING" } }),
         prisma.product.count({ where: { stock: { lt: 10 } } }),
-        prisma.abandonedCart.count({ where: { updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } })
+        prisma.abandonedCart.count({ where: { updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } }),
+        prisma.storeSettings.findUnique({ where: { id: "1" } })
     ]);
 
-    return NextResponse.json({ count, messagesCount, prescriptionsCount, reviewsCount, lowStockCount, abandonedCartsCount });
+    let modules = { enableServices: true };
+    if (settings?.modules) {
+        try {
+            modules = JSON.parse(settings.modules);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    return NextResponse.json({ count, messagesCount, prescriptionsCount, reviewsCount, lowStockCount, abandonedCartsCount, modules });
 }

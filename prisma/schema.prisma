@@ -24,6 +24,7 @@ model User {
   prescriptions Prescription[]
   reviews       Review[]
   wishlist      Wishlist[]
+  reservations  Reservation[]
 }
 
 model Product {
@@ -205,6 +206,7 @@ model StoreSettings {
   updatedAt DateTime @updatedAt
   footer    String?  @db.LongText
   header    String?  @db.LongText
+  modules   String?  @db.LongText
 }
 
 model AbandonedCart {
@@ -240,3 +242,43 @@ enum MessageStatus {
   READ
   REPLIED
 }
+
+model PharmacyService {
+  id          String        @id @default(cuid())
+  name        String
+  description String        @db.Text
+  duration    Int           // Durée estimée en minutes
+  price       Float
+  image       String?       @db.LongText
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  reservations Reservation[]
+}
+
+model Reservation {
+  id        String            @id @default(cuid())
+  userId    String?           
+  name      String            
+  phone     String            
+  email     String?
+  serviceId String
+  date      DateTime
+  time      String            
+  status    ReservationStatus @default(PENDING)
+  notes     String?           @db.Text
+  createdAt DateTime          @default(now())
+
+  service   PharmacyService   @relation(fields: [serviceId], references: [id])
+  user      User?             @relation(fields: [userId], references: [id])
+
+  @@index([serviceId])
+  @@index([userId])
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+

@@ -23,12 +23,12 @@ export async function POST(req: Request) {
         const session = await auth();
         if (session?.user?.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
-        const { boutique, livraison, paiement, notifs, apparence, header, footer } = await req.json();
+        const { boutique, livraison, paiement, notifs, apparence, header, footer, modules } = await req.json();
 
         const updated = await db.storeSettings.upsert({
             where: { id: "1" },
-            update: { boutique, livraison, paiement, notifs, apparence, header, footer },
-            create: { id: "1", boutique, livraison, paiement, notifs, apparence, header, footer },
+            update: { boutique, livraison, paiement, notifs, apparence, header, footer, modules },
+            create: { id: "1", boutique, livraison, paiement, notifs, apparence, header, footer, modules },
         });
 
         return NextResponse.json(updated);

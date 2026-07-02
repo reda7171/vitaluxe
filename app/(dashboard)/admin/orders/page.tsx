@@ -26,6 +26,8 @@ const PAYMENT_LABELS: Record<string, string> = {
     COD: "Livraison",
     PAYPAL: "PayPal",
     STRIPE: "Stripe",
+    POS_CASH: "POS - Espèces",
+    POS_CARD: "POS - Carte",
 };
 
 interface Order {
@@ -46,6 +48,7 @@ export default function AdminOrdersPage() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [paymentFilter, setPaymentFilter] = useState("");
+    const [originFilter, setOriginFilter] = useState("");
     const [sortBy, setSortBy] = useState<"date" | "amount">("date");
     const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
     const [page, setPage] = useState(1);
@@ -68,6 +71,7 @@ export default function AdminOrdersPage() {
         .filter(o =>
             (!statusFilter || o.status === statusFilter) &&
             (!paymentFilter || o.paymentMethod === paymentFilter) &&
+            (!originFilter || (originFilter === "POS" ? o.paymentMethod?.startsWith("POS_") : !o.paymentMethod?.startsWith("POS_"))) &&
             (!search || o.user.name?.toLowerCase().includes(search.toLowerCase()) || o.user.email.toLowerCase().includes(search.toLowerCase()) || o.id.toLowerCase().includes(search.toLowerCase())) &&
             (!dateFrom || new Date(o.createdAt) >= new Date(dateFrom)) &&
             (!dateTo || new Date(o.createdAt) <= new Date(dateTo + "T23:59:59"))
@@ -211,8 +215,8 @@ export default function AdminOrdersPage() {
                 <div className="flex items-center gap-2 mb-3">
                     <Filter size={15} className="text-slate-400" />
                     <span className="text-sm font-semibold text-slate-600">Filtres</span>
-                    {(search || statusFilter || paymentFilter || dateFrom || dateTo) && (
-                        <button onClick={() => { setSearch(""); setStatusFilter(""); setPaymentFilter(""); setDateFrom(""); setDateTo(""); setPage(1); }}
+                    {(search || statusFilter || paymentFilter || originFilter || dateFrom || dateTo) && (
+                        <button onClick={() => { setSearch(""); setStatusFilter(""); setPaymentFilter(""); setOriginFilter(""); setDateFrom(""); setDateTo(""); setPage(1); }}
                             className="ml-auto text-xs text-red-500 hover:underline">Réinitialiser</button>
                     )}
                 </div>
@@ -227,6 +231,12 @@ export default function AdminOrdersPage() {
                         className="h-9 px-3 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none min-w-[130px]">
                         <option value="">Tous les statuts</option>
                         {Object.entries(STATUS_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                    <select value={originFilter} onChange={e => { setOriginFilter(e.target.value); setPage(1); }}
+                        className="h-9 px-3 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none min-w-[130px]">
+                        <option value="">Toutes origines</option>
+                        <option value="ONLINE">Boutique en ligne</option>
+                        <option value="POS">Point de Vente (POS)</option>
                     </select>
                     <select value={paymentFilter} onChange={e => { setPaymentFilter(e.target.value); setPage(1); }}
                         className="h-9 px-3 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none min-w-[130px]">
